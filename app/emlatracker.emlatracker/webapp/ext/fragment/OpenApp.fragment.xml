@@ -1,8 +1,7 @@
 <core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
 	<HBox id="hbox" class="sapUiTinyContentPadding"> 
 		<items>
-			<Button id="_IDGenButton1" core:require="{ handler: 'emlatracker/emlatracker/ext/fragment/OpenApp'}" text="EMLA Tool" press="handler.onPressEMLA" />
-			<Button id="_IDGenButton" core:require="{ handler: 'emlatracker/emlatracker/ext/fragment/OpenApp'}" text="1:1 App" press="handler.onPressApp" class="sapUiMediumMarginBegin" /> 
+			<Button id="_IDGenButton1" core:require="{ handler: 'emlatracker/emlatracker/ext/fragment/OpenApp'}" text="Track Tool" press="handler.onPressEMLA" />
 		</items>
 	</HBox>
 </core:FragmentDefinition>

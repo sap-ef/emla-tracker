@@ -10,7 +10,7 @@
       ]
     },
     "applicationVersion": {
-      "version": "0.0.1"
+      "version": "0.0.4"
     },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
@@ -135,7 +135,7 @@
                       "header": "External Actions",
                       "width": "250px",
                       "position": {
-                        "anchor": "DataField::region",
+                        "anchor": "DataField::status",
                         "placement": "After"
                       },
                       "template": "emlatracker.emlatracker.ext.fragment.OpenApp"

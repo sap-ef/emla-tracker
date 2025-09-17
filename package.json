@@ -34,6 +34,13 @@
   },
   "cds": {
     "requires": {
+      "onb_session": {
+        "kind": "odata-v2",
+        "credentials": {
+          "destination": "onb_session",
+          "path": "/api"
+        }
+      },
       "[production]": {
         "db": "hana",
         "auth": "xsuaa"

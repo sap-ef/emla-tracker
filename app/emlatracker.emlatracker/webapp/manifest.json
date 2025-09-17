@@ -5,7 +5,7 @@
     "type": "application",
     "i18n": "i18n/i18n.properties",
     "applicationVersion": {
-      "version": "0.0.1"
+      "version": "0.0.5"
     },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
@@ -111,7 +111,9 @@
             "settings": {
               "contextPath": "/EMLACustomers",
               "variantManagement": "Page",
-              "navigation": {},
+              "navigation": {
+                "alwaysSelect": ["trackApp","externalID"]
+              },
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
@@ -122,7 +124,7 @@
                       "header": "External Actions",
                       "width": "250px",
                       "position": {
-                        "anchor": "DataField::region",
+                        "anchor": "DataField::status",
                         "placement": "After"
                       },
                       "template": "emlatracker.emlatracker.ext.fragment.OpenApp"

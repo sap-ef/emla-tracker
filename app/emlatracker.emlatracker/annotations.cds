@@ -35,8 +35,8 @@ annotate service.EMLACustomers with @(
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'startDateL',
-                Value : startDateL,
+                Label : 'startDate',
+                Value : startDate,
             },
             {
                 $Type : 'UI.DataField',
@@ -66,23 +66,55 @@ annotate service.EMLACustomers with @(
     UI.LineItem : [
         {
             $Type : 'UI.DataField',
-            Label : 'customerName',
+            Label : 'Customer Name',
             Value : customerName,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'customerNumber',
+            Label : 'Customer Number',
             Value : customerNumber,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'emlaType',
+            Label : 'EMLA Type',
             Value : emlaType,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'region',
-            Value : region,
+            Value : btpOnbAdvEmail,
+            Label : 'BTP OA',
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : startDate,
+            Label : 'Start Date',
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : completedOn,
+            Label : 'Completed On',
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : status,
+            Label : 'Status',
+        },
+        {
+            $Type : 'UI.DataFieldForAction',
+            Action : 'EMLATrackerService.setCompleted',
+            Label : 'Set as Completed',
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : trackApp,
+            Label : 'trackApp',
+            @UI.Hidden,
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : externalID,
+            Label : 'externalID',
+            @UI.Hidden,
         },
     ],
 );
