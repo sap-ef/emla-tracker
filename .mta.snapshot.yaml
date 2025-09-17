@@ -1,0 +1,223 @@
+_schema-version: '3.1'
+ID: EMLATracker
+version: 1.0.0
+description: A simple CAP project.
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+  subdomain: sap-build-onb
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - rm -rf build/dist
+        - mkdir -p build/dist
+        - rm -rf build/ui-deployer
+        - mkdir -p build/ui-deployer
+    - builder: custom
+      commands:
+        - npm install --production
+        - >-
+          bash -c "cds -v | grep 'cds-dk' || npm i --production --no-save
+          @sap/cds-dk"
+        - bash -c "export PATH=$PATH:$(pwd)/node_modules/.bin"
+        - cds build --production
+  after-all:
+    - builder: custom
+      commands:
+        - npm install
+modules:
+  - name: EMLATracker-emlatracker.emlatracker
+    type: html5
+    path: app/emlatracker.emlatracker
+    build-parameters:
+      builder: custom
+      commands:
+        - rm -rf dist-zip dist
+        - npm install
+        - >-
+          npx -p @ui5/cli@^3.0.0 ui5 build --dest dist
+          --include-task=generateCachebusterInfo
+        - mkdir dist-zip
+        - >-
+          bash -c "cd dist && npx bestzip ../dist-zip/emlatrackeremlatracker.zip
+          *"
+      _artifactName: emlatrackeremlatracker.zip
+      supported-platforms: []
+      build-result: dist-zip
+  - name: EMLATracker-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm
+      ignore:
+        - node_modules
+        - package-lock.json
+    requires:
+      - name: EMLATracker-service-uaa
+      - name: EMLATracker-service-db
+  - name: EMLATracker-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      memory: 256MB
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    build-parameters:
+      builder: npm
+      ignore:
+        - node_modules
+        - package-lock.json
+    requires:
+      - name: EMLATracker-service-uaa
+      - name: EMLATracker-service-db
+      - name: EMLATracker-service-destination
+      - name: EMLATracker-service-metadata
+      - name: EMLATracker-service-connectivity
+      - name: EMLATracker-service-logs
+  - name: EMLATracker-aux-destinations
+    type: com.sap.application.content
+    parameters:
+      content:
+        subaccount:
+          existing_destinations_policy: update
+          destinations:
+            - Authentication: OAuth2UserTokenExchange
+              Name: EMLATracker-service-uaa
+              ServiceInstanceName: EMLATracker-uaa
+              ServiceKeyName: EMLATracker-uaa-key
+              sap.cloud.service: lcap.EMLATracker
+            - Authentication: OAuth2UserTokenExchange
+              Name: EMLATracker-app-srv
+              TokenServiceInstanceName: EMLATracker-uaa
+              TokenServiceKeyName: EMLATracker-uaa-key
+              URL: ~{srv-api/srv-url}
+              sap.cloud.service: lcap.EMLATracker
+            - Name: EMLATracker-service-html5-apps-repo-host
+              ServiceInstanceName: EMLATracker-html5-apps-repo-host
+              ServiceKeyName: EMLATracker-html5-apps-repo-host-key
+              sap.cloud.service: lcap.EMLATracker
+            - Authentication: OAuth2UserTokenExchange
+              Name: EMLATracker-EMLATrackerService
+              TokenServiceInstanceName: EMLATracker-uaa
+              TokenServiceKeyName: EMLATracker-uaa-key
+              URL: ~{srv-api/srv-url}/service/EMLATrackerService
+              sap.cloud.service: lcap.EMLATracker
+              sap.applicationdevelopment.actions.enabled: false
+              sap.build.usage: CAP
+              sap.processautomation.enabled: false
+              HTML5.DynamicDestination: false
+              WebIDEEnabled: false
+              MobileEnabled: false
+              AppgyverEnabled: false
+    build-parameters:
+      no-source: true
+    requires:
+      - name: EMLATracker-service-uaa
+        parameters:
+          service-key:
+            name: EMLATracker-uaa-key
+      - name: srv-api
+      - name: EMLATracker-service-html5-apps-repo-host
+        parameters:
+          service-key:
+            name: EMLATracker-html5-apps-repo-host-key
+      - name: EMLATracker-service-destination
+        parameters:
+          content-target: true
+  - name: EMLATracker-launchpad
+    type: html5
+    path: build/launchpad
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install
+        - >-
+          npx -p @ui5/cli@^3.0.0 ui5 build --dest dist
+          --include-task=generateCachebusterInfo
+        - bash -c "cd dist && npx bestzip ../../../build/dist/launchpad.zip *"
+        - rm -rf dist
+      _artifactName: launchpad.zip
+      supported-platforms: []
+      build-result: ../../build/dist
+  - name: EMLATracker-aux-ui-deployer
+    type: com.sap.application.content
+    path: build/ui-deployer
+    build-parameters:
+      build-result: resources
+      requires:
+        - name: EMLATracker-emlatracker.emlatracker
+          artifacts:
+            - emlatrackeremlatracker.zip
+          target-path: resources
+        - name: EMLATracker-launchpad
+          artifacts:
+            - launchpad.zip
+          target-path: resources
+    requires:
+      - name: EMLATracker-service-html5-apps-repo-host
+        parameters:
+          content-target: true
+resources:
+  - type: org.cloudfoundry.managed-service
+    name: EMLATracker-service-uaa
+    parameters:
+      service: xsuaa
+      service-plan: application
+      service-name: EMLATracker-uaa
+      path: xs-security.json
+      config:
+        oauth2-configuration:
+          redirect-uris:
+            - https://${subdomain}.launchpad.${default-domain}/login/*
+            - https://${subdomain}.${default-domain}/login/*
+          credential-types:
+            - binding-secret
+            - x509
+        xsappname: EMLATracker-${space}
+        role-collections: []
+  - type: org.cloudfoundry.managed-service
+    name: EMLATracker-service-db
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+      service-name: EMLATracker-db
+  - type: org.cloudfoundry.managed-service
+    name: EMLATracker-service-destination
+    parameters:
+      service: destination
+      service-plan: lite
+      service-name: EMLATracker-destination
+      config:
+        HTML5Runtime_enabled: true
+        version: 1.0.0
+  - type: org.cloudfoundry.user-provided-service
+    name: EMLATracker-service-metadata
+    parameters:
+      service: metadata
+      service-plan: standard
+      service-name: EMLATracker-metadata
+      config:
+        default-domain: ${default-domain}
+  - type: org.cloudfoundry.managed-service
+    name: EMLATracker-service-connectivity
+    parameters:
+      service: connectivity
+      service-plan: lite
+      service-name: EMLATracker-connectivity
+  - type: org.cloudfoundry.managed-service
+    name: EMLATracker-service-logs
+    parameters:
+      service: application-logs
+      service-plan: lite
+      service-name: EMLATracker-logs
+  - type: org.cloudfoundry.managed-service
+    name: EMLATracker-service-html5-apps-repo-host
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+      service-name: EMLATracker-html5-apps-repo-host

@@ -1,0 +1,1 @@
+{"version":3,"file":"OpenApp.js","names":["sap","ui","define","MessageToast","onPress","oEvent","console","log","show"],"sources":["OpenApp-dbg.js"],"mappings":"AAAAA,IAAIC,GAAGC,OAAO,CACV,sBACD,SAASC,GACR,aAEA,MAAO,CACHC,QAAS,SAASC,GACdC,QAAQC,IAAIF,GACZF,EAAaK,KAAK,0BACtB,EAER","ignoreList":[]}

@@ -1,0 +1,21 @@
+GET http://localhost:4004/service/EMLATrackerService/EMLACustomers
+Authorization: Basic user:passwd
+
+
+###
+POST http://localhost:4004/service/EMLATrackerService/EMLACustomers
+Authorization: Basic user:passwd
+Content-Type: application/json
+
+{
+    "externalID": "315",
+    "customerName": "John Doe",
+    "customerNumber": "CUST001",
+    "emlaType": "Public Cloud ERP",
+    "region": "North America",
+    "country": "USA",
+    "startDateL": "2023-10-01",
+    "btpOnbAdvNome": "Adv Nome",
+    "btpOnbAdvEmail": "advnome@example.com",
+    "Status": "Active"
+}
