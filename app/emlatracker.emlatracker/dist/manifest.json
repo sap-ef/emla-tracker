@@ -10,7 +10,7 @@
       ]
     },
     "applicationVersion": {
-      "version": "0.0.4"
+      "version": "0.0.8"
     },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
@@ -125,15 +125,26 @@
               "contextPath": "/EMLACustomers",
               "variantManagement": "Page",
               "navigation": {},
+              "initialLoad": "Auto",
+              "filterSettings": {
+                "defaultFilterValues": [
+                  {
+                    "property": "status",
+                    "operation": "NE",
+                    "value": "Completed"
+                  }
+                ]
+              },
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "ResponsiveTable"
+                    "type": "ResponsiveTable",
+                    "enableExport": true
                   },
                   "columns": {
                     "OpenApp": {
                       "header": "External Actions",
-                      "width": "250px",
+                      "width": "120px",
                       "position": {
                         "anchor": "DataField::status",
                         "placement": "After"
@@ -142,7 +153,8 @@
                     }
                   }
                 }
-              }
+              },
+              "defaultTemplateAnnotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#table"
             }
           }
         }

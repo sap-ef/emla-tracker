@@ -1,8 +1,8 @@
-using {EMLATracker as my} from '../db/schema.cds';
+using {EMLATracker as db} from '../db/schema.cds';
 
 @path: '/service/EMLATrackerService'
 service EMLATrackerService {
-    entity EMLACustomers as projection on my.EMLACustomers
+    entity EMLACustomers    as projection on db.EMLACustomers
         actions {
             @Common.SideEffects: {
                 TargetProperties: [
@@ -15,6 +15,9 @@ service EMLATrackerService {
         };
 
     action onbTrackApp(ID: UUID) returns String;
+
+    entity EMLATypeVH       as projection on db.EMLATypeVH;
+    entity BTPOnbAdvEmailVH as projection on db.BTPOnbAdvEmailVH;
 }
 
 annotate EMLATrackerService with @requires: ['authenticated-user'];

@@ -27,7 +27,7 @@
                     return Controller.extend("PreviewController", {
                         onInit: function () {
 
-                            const data = {"Services":[{"ServiceName":"EMLATrackerService","DetailsURL":"./service/EMLATrackerService/","Metadata":"./service/EMLATrackerService/$metadata","Entities":[{"Name":"EMLACustomers","URL":"./service/EMLATrackerService/EMLACustomers","FioriURL":""}],"EntitiesCount":1}]}
+                            const data = {"Services":[{"ServiceName":"EMLATrackerService","DetailsURL":"./service/EMLATrackerService/","Metadata":"./service/EMLATrackerService/$metadata","Entities":[{"Name":"EMLACustomers","URL":"./service/EMLATrackerService/EMLACustomers","FioriURL":""},{"Name":"EMLATypeVH","URL":"./service/EMLATrackerService/EMLATypeVH","FioriURL":""},{"Name":"BTPOnbAdvEmailVH","URL":"./service/EMLATrackerService/BTPOnbAdvEmailVH","FioriURL":""}],"EntitiesCount":3}]}
                             this.getView().setModel(new JSONModel(data));
                         }
                     });

@@ -30,7 +30,8 @@
     "start-local": "npm run generate-entry-point && npm run cds-watch",
     "generate-entry-point": "dev-cap-tools gen-entrypoint",
     "cds-watch": "cds watch --open",
-    "watch-emlatracker.emlatracker": "cds watch --open emlatracker.emlatracker/webapp/index.html?sap-ui-xx-viewCache=false"
+    "watch-emlatracker.emlatracker": "cds watch --open emlatracker.emlatracker/webapp/index.html?sap-ui-xx-viewCache=false",
+    "watch-emlatracker.csvupload": "cds watch --open emlatracker.csvupload/webapp/index.html?sap-ui-xx-viewCache=false"
   },
   "cds": {
     "requires": {
@@ -57,6 +58,7 @@
   },
   "lcap": true,
   "sapux": [
-    "app/emlatracker.emlatracker"
+    "app/emlatracker.emlatracker",
+    "app/emlatracker.csvupload"
   ]
 }

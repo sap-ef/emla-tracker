@@ -32,6 +32,10 @@ module.exports = async function (request) {
 		// 3. Chamar serviço externo para gerar código
 		const generatedTrackApp = await callExternalService(customer, request);
 
+		if (generatedTrackApp.startsWith("TRACK_")) {
+			return request.error(500, `Error generating trackApp: Problem to callExternalService`);
+		}
+
 		// 4. Atualizar o registro com o código gerado
 		await UPDATE('EMLACustomers')
 			.set({ trackApp: generatedTrackApp })
@@ -62,20 +66,24 @@ async function callExternalService(customer, request) {
 
 		// Preparar dados para enviar ao serviço externo
 		const payload = {
-			customer_CUSTOMERID: customer.customerNumber,
-			oaResponsible: customer.btpOnbAdvEmail,
-			customerBTPACV: 0
+			input: {
+				customerNumber: customer.customerNumber,
+				reponsible: customer.btpOnbAdvEmail,
+				emlaType: customer.emlaType,
+				emlaID: customer.ID,
+				startDate: customer.startDate
+			}
 		};
 
 		console.log('Calling external service with payload:', payload);
 
 		// Fazer a chamada ao serviço OData
-		const result = await destination.post('/Sessions', payload);
+		const result = await destination.post('/emlaSession', payload);
 
 		// Extrair o código gerado da resposta
-		if (result && (result.ID)) {
-			console.log(result.ID);
-			return result.ID;
+		if (result && (result.value)) {
+			console.log(result.value);
+			return result.value;
 		} else {
 			throw new Error('Invalid response format from external service');
 		}
