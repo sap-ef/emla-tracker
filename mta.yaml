@@ -22,6 +22,7 @@ build-parameters:
           @sap/cds-dk"
         - bash -c "export PATH=$PATH:$(pwd)/node_modules/.bin"
         - cds build --production
+        - node fix-hdi-deploy.js
   after-all:
     - builder: custom
       commands:
@@ -75,6 +76,8 @@ modules:
     requires:
       - name: EMLATracker-service-uaa
       - name: EMLATracker-service-db
+        properties:
+          TARGET_CONTAINER: ~{hdi-container-name}
   - name: EMLATracker-srv
     type: nodejs
     path: gen/srv
@@ -207,6 +210,8 @@ resources:
       service: hana
       service-plan: hdi-shared
       service-name: EMLATracker-db
+    properties:
+      hdi-container-name: ${service-name}
   - type: org.cloudfoundry.managed-service
     name: EMLATracker-service-destination
     parameters:

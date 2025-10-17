@@ -6,6 +6,7 @@ const LCAPApplicationService = require('@sap/low-code-event-handler');
 const onbtrackapp_Logic = require('./code/onbtrackapp-logic');
 const emlacustomers_Logic = require('./code/emlacustomers-logic');
 const csvUpload_Logic = require('./code/csv-upload-logic');
+const syncEmla_Logic = require('./code/sync-emla-logic');
 
 class EMLATrackerService extends LCAPApplicationService {
     async init() {
@@ -20,6 +21,10 @@ class EMLATrackerService extends LCAPApplicationService {
 
         this.on('uploadCSV', async (request) => {
             return csvUpload_Logic(request);
+        });
+
+        this.on('syncEMLAData', async (request) => {
+            return syncEmla_Logic(request);
         });
 
         return super.init();

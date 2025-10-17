@@ -26,6 +26,9 @@ mta_archives/
 *.iml
 *.flattened-pom.xml
 
+app/emlatracker.csvupload/dist-zip/
+app/emlatracker.emlatracker/dist-zip/
+
 # IDEs
 # .vscode
 # .idea
@@ -37,3 +40,7 @@ mta_archives/
 build/ui-deployer/
 build/dist/
 env/
+default-env.json
+
+app/emlatracker.csvupload/dist-zip/emlatrackercsvupload.zip
+app/emlatracker.emlatracker/dist-zip/emlatrackeremlatracker.zip
