@@ -45,6 +45,23 @@ modules:
       _artifactName: emlatrackeremlatracker.zip
       supported-platforms: []
       build-result: dist-zip
+  - name: EMLATracker-emlatracker.csvupload
+    type: html5
+    path: app/emlatracker.csvupload
+    build-parameters:
+      builder: custom
+      commands:
+        - rm -rf dist-zip dist
+        - npm install
+        - >-
+          npx -p @ui5/cli@^3.0.0 ui5 build --dest dist
+          --include-task=generateCachebusterInfo
+        - mkdir dist-zip
+        - >-
+          bash -c "cd dist && npx bestzip ../dist-zip/emlatrackercsvupload.zip *"
+      _artifactName: emlatrackercsvupload.zip
+      supported-platforms: []
+      build-result: dist-zip
   - name: EMLATracker-db-deployer
     type: hdb
     path: gen/db
@@ -157,6 +174,10 @@ modules:
         - name: EMLATracker-launchpad
           artifacts:
             - launchpad.zip
+          target-path: resources
+        - name: EMLATracker-emlatracker.csvupload
+          artifacts:
+            - emlatrackercsvupload.zip
           target-path: resources
     requires:
       - name: EMLATracker-service-html5-apps-repo-host

@@ -1,0 +1,4 @@
+customerName,customerNumber,emlaType,region,country,startDate,erpOnbAdvNome,btpOnbAdvNome,btpOnbAdvEmail
+"ACME Corporation",C001,Rise with SAP,EMEA,Germany,2024-01-15,"John Smith","Alice Johnson",alice.johnson@sap.com
+"Tech Solutions Ltd",C002,S/4HANA Cloud,Americas,USA,2024-02-20,"Bob Wilson","David Brown",david.brown@sap.com
+"Global Enterprises",C003,Rise with SAP,APAC,Australia,2024-03-10,"Sarah Davis","Emma Wilson",emma.wilson@sap.com

@@ -14,7 +14,11 @@ service EMLATrackerService {
             action setCompleted() returns Boolean;
         };
 
+    entity OnboardAdvisors  as projection on db.OnboardAdvisors;
+
     action onbTrackApp(ID: UUID) returns String;
+    
+    action uploadCSV(csvData: String, csvType: String) returns String;
 
     entity EMLATypeVH       as projection on db.EMLATypeVH;
     entity BTPOnbAdvEmailVH as projection on db.BTPOnbAdvEmailVH;

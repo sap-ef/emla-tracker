@@ -1,0 +1,146 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "emlatracker.csvupload",
+    "type": "application",
+    "i18n": {
+      "bundleUrl": "i18n/i18n.properties",
+      "supportedLocales": [
+        "",
+        "en",
+        "en-US"
+      ]
+    },
+    "applicationVersion": {
+      "version": "0.0.3"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:fpm",
+      "version": "1.19.1",
+      "toolsId": "5b6fa7ee-809a-4f96-b798-5816aee55f8c"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "service/EMLATrackerService/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "emlatrackercsvupload-display": {
+          "semanticObject": "emlatrackercsvupload",
+          "action": "display",
+          "title": "{{emlatrackercsvupload-display.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.108.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.ui.unified": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "emlatracker.csvupload.i18n.i18n",
+          "supportedLocales": [
+            "",
+            "en",
+            "en-US"
+          ]
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties",
+        "settings": {
+          "supportedLocales": [
+            "",
+            "en",
+            "en-US"
+          ]
+        }
+      }
+    },
+    "resources": {
+      "css": []
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "controlId": "app",
+        "controlAggregation": "pages"
+      },
+      "routes": [
+        {
+          "pattern": "",
+          "name": "main",
+          "target": "main"
+        }
+      ],
+      "targets": {
+        "main": {
+          "viewId": "main",
+          "viewName": "emlatracker.csvupload.ext.main.Main"
+        }
+      }
+    }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "lcap.EMLATracker"
+  },
+  "sap.platform.cf": {
+    "oAuthScopes": [
+      "uaa.user"
+    ]
+  }
+}

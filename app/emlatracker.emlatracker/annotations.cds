@@ -79,9 +79,21 @@ annotate service.EMLACustomers with @(
         },
         {
             $Type                : 'UI.DataField',
-            Label                : 'EMLA Type',
-            Value                : emlaType,
-            ![@HTML5.CssDefaults]: {width: '180px'},
+            Value                : startDate,
+            Label                : 'Start Date',
+            ![@HTML5.CssDefaults]: {width: '110px'},
+        },
+        {
+            $Type                : 'UI.DataField',
+            Value                : status,
+            Label                : 'Status',
+            ![@HTML5.CssDefaults]: {width: '120px'},
+        },
+        {
+            $Type                : 'UI.DataField',
+            Value                : completedOn,
+            Label                : 'Completed On',
+            ![@HTML5.CssDefaults]: {width: '110px'},
         },
         {
             $Type                : 'UI.DataField',
@@ -97,21 +109,9 @@ annotate service.EMLACustomers with @(
         },
         {
             $Type                : 'UI.DataField',
-            Value                : startDate,
-            Label                : 'Start Date',
-            ![@HTML5.CssDefaults]: {width: '110px'},
-        },
-        {
-            $Type                : 'UI.DataField',
-            Value                : completedOn,
-            Label                : 'Completed On',
-            ![@HTML5.CssDefaults]: {width: '110px'},
-        },
-        {
-            $Type                : 'UI.DataField',
-            Value                : status,
-            Label                : 'Status',
-            ![@HTML5.CssDefaults]: {width: '120px'},
+            Label                : 'EMLA Type',
+            Value                : emlaType,
+            ![@HTML5.CssDefaults]: {width: '180px'},
         },
         {
             $Type : 'UI.DataFieldForAction',

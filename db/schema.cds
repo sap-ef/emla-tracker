@@ -34,3 +34,10 @@ entity BTPOnbAdvEmailVH as
   }
   group by
     btpOnbAdvEmail;
+
+entity OnboardAdvisors {
+    key onbAdvisor : String;
+        name       : String;
+        email      : String;
+
+}

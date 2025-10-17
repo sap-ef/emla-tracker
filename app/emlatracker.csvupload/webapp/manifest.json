@@ -5,7 +5,7 @@
     "type": "application",
     "i18n": "i18n/i18n.properties",
     "applicationVersion": {
-      "version": "0.0.1"
+      "version": "0.0.3"
     },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
@@ -17,7 +17,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/service/EMLATrackerService/",
+        "uri": "service/EMLATrackerService/",
         "type": "OData",
         "settings": {
           "annotations": [],
@@ -58,11 +58,11 @@
   "sap.ui5": {
     "flexEnabled": true,
     "dependencies": {
-      "minUI5Version": "1.120.13",
+      "minUI5Version": "1.108.0",
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
-        "sap.fe.core": {}
+        "sap.ui.unified": {}
       }
     },
     "contentDensities": {
@@ -94,28 +94,32 @@
       "css": []
     },
     "routing": {
-      "config": {},
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "controlId": "app",
+        "controlAggregation": "pages"
+      },
       "routes": [
         {
-          "name": "EMLACustomersMain",
-          "pattern": ":?query:",
-          "target": "EMLACustomersMain"
+          "pattern": "",
+          "name": "main",
+          "target": "main"
         }
       ],
       "targets": {
-        "EMLACustomersMain": {
-          "type": "Component",
-          "id": "EMLACustomersMain",
-          "name": "sap.fe.core.fpm",
-          "options": {
-            "settings": {
-              "navigation": {},
-              "contextPath": "/EMLACustomers",
-              "viewName": "emlatracker.csvupload.ext.main.Main"
-            }
-          }
+        "main": {
+          "viewId": "main",
+          "viewName": "emlatracker.csvupload.ext.main.Main"
         }
       }
     }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "lcap.EMLATracker"
+  },
+  "sap.platform.cf": {
+    "oAuthScopes": ["uaa.user"]
   }
 }

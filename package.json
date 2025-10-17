@@ -15,6 +15,7 @@
     "@sap/xssec": "^4.9.2",
     "express": "^4",
     "hdb": "^2.25.1",
+    "papaparse": "^5.5.3",
     "passport": "^0.7.0"
   },
   "engines": {
@@ -26,7 +27,7 @@
     "@sap/dev-cap-tools": "^1.31.0"
   },
   "scripts": {
-    "start": "cds-serve",
+    "start": "node server.js",
     "start-local": "npm run generate-entry-point && npm run cds-watch",
     "generate-entry-point": "dev-cap-tools gen-entrypoint",
     "cds-watch": "cds watch --open",
@@ -54,6 +55,18 @@
           "kind": "xsuaa"
         }
       }
+    },
+    "cov2ap": {
+      "fileUploadSizeLimit": 10485760
+    },
+    "odata": {
+      "batch_limit": "10mb",
+      "v4": {
+        "batch_limit": "10mb"
+      }
+    },
+    "server": {
+      "body_limit": "10mb"
     }
   },
   "lcap": true,
