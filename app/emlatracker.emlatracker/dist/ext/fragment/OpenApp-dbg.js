@@ -9,7 +9,7 @@ sap.ui.define(
           "https://emla-prod.launchpad.cfapps.us10.hana.ondemand.com/site/prod#CustomerData-manage?sap-ui-app-id-hint=saas_approuter_com.sap.rise.managecustomerdata&/CustomerMaster(ID=#ID#,IsActiveEntity=true)";
         // const trackApp_url = "https://movetosap-dev2.launchpad.cfapps.br10.hana.ondemand.com/site?siteId=fe90bf68-d6c5-48ef-8c11-9fc6924d1e6e#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)";
         const trackApp_url =
-          "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)";
+          "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
 
         // 1. Get the context from the button
         var oButton = oEvent.getSource();

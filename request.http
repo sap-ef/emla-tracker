@@ -75,7 +75,7 @@ If-Match: *
 }
 
 ###
-POST http://localhost:65057/service/EMLATrackerService/EMLACustomers
+POST http://localhost:4004/service/EMLATrackerService/EMLACustomers
 Authorization: Basic user:passwd
 Content-Type: application/json
 
@@ -94,7 +94,7 @@ Content-Type: application/json
       "startDate": "2025-09-15",
       "erpOnbAdvNome": "",
       "btpOnbAdvNome": "Julia Baust",
-      "btpOnbAdvEmail": "julia.baust@sap.com",
+      "btpOnbAdvEmail": "eduardo.fagundes@sap.com",
       "status": "Open",
       "trackApp": "3c29a778-1a47-465b-91fa-2f640c9a1386",
       "trackAppTP2": "359d2bed-8393-4689-8c4b-03b6ed7ece6a",
@@ -107,7 +107,7 @@ Content-Type: application/json
 
 ###
 # Update session completion status by checking webservice
-POST http://localhost:65057/service/EMLATrackerService/updateSessionStatus
+POST http://localhost:4004/service/EMLATrackerService/updateSessionStatus
 Authorization: Basic user:passwd
 Content-Type: application/json
 

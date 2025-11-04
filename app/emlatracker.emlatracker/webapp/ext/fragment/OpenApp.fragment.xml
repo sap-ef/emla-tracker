@@ -5,7 +5,7 @@
 			<HBox id="hboxButton1">
 				<!-- Icon for TP1 / Workflow App availability -->
 				<core:Icon id="iconTP1" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
-					src="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'}], formatter:'formatter.iconTP1'}"
+					src="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'emlaType'}], formatter:'formatter.iconTP1'}"
 					class="emlaIconPad {parts:[{path:'isTrackAppCompleted'}], formatter:'formatter.greenClass'} {= ${isTrackAppCompleted} ? 'emlaIconDebugTrue' : '' }"
 					tooltip="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'}], formatter:'formatter.tooltipTP1'}"/>
 				<Link id="button1"
@@ -26,7 +26,7 @@
 			<!-- Botão 2 - texto vazio para Private Cloud ERP -->
 			<HBox id="hboxButton2">
 				<core:Icon id="iconTP2" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
-					src="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'}], formatter:'formatter.iconTP2'}"
+					src="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'emlaType'}], formatter:'formatter.iconTP2'}"
 					class="emlaIconPad {parts:[{path:'isTrackAppTP2Completed'}], formatter:'formatter.greenClass'} {= ${isTrackAppTP2Completed} ? 'emlaIconDebugTrue' : '' }"
 					tooltip="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'}], formatter:'formatter.tooltipTP2'}"/>
 				<Link id="button2"
@@ -47,7 +47,7 @@
 			<!-- Botão 3 - só tem texto para Integration Suite -->
 			<HBox id="hboxButton3">
 				<core:Icon id="iconSH" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
-					src="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'}], formatter:'formatter.iconSH'}"
+					src="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'},{path:'emlaType'}], formatter:'formatter.iconSH'}"
 					class="emlaIconPad {parts:[{path:'isTrackAppSHCompleted'}], formatter:'formatter.greenClass'} {= ${isTrackAppSHCompleted} ? 'emlaIconDebugTrue' : '' }"
 					tooltip="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'}], formatter:'formatter.tooltipSH'}"/>
 				<Link id="button3"
