@@ -75,7 +75,23 @@
     },
     "server": {
       "body_limit": "10mb"
-    }
+    },
+    "middlewares": [
+      {
+        "kind": "express",
+        "impl": "express.json",
+        "options": {
+          "limit": "10mb"
+        }
+      },
+      {
+        "kind": "express", 
+        "impl": "express.text",
+        "options": {
+          "limit": "10mb"
+        }
+      }
+    ]
   },
   "lcap": true,
   "sapux": [

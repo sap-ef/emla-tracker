@@ -4,27 +4,43 @@
  */
 const LCAPApplicationService = require('@sap/low-code-event-handler');
 const onbtrackapp_Logic = require('./code/onbtrackapp-logic');
+const onbtrackapptp2_Logic = require('./code/onbtrackapptp2-logic');
+const onbtrackappsh_Logic = require('./code/onbtrackappsh-logic');
 const emlacustomers_Logic = require('./code/emlacustomers-logic');
 const csvUpload_Logic = require('./code/csv-upload-logic');
 const syncEmla_Logic = require('./code/sync-emla-logic');
+const sessionStatus_Logic = require('./code/session-status-logic');
 
 class EMLATrackerService extends LCAPApplicationService {
     async init() {
 
+        // Configure larger payload limits for CSV upload
+        this.on('uploadCSV', async (request) => {
+            return csvUpload_Logic(request);
+        });
+
         this.on('onbTrackApp', async (request) => {
             return onbtrackapp_Logic(request);
+        });
+
+        this.on('onbTrackAppTP2', async (request) => {
+            return onbtrackapptp2_Logic(request);
+        });
+
+        this.on('onbTrackAppSH', async (request) => {
+            return onbtrackappsh_Logic(request);
         });
 
         this.on('setCompleted', 'EMLACustomers', async (request) => {
             return emlacustomers_Logic(request);
         });
 
-        this.on('uploadCSV', async (request) => {
-            return csvUpload_Logic(request);
-        });
-
         this.on('syncEMLAData', async (request) => {
             return syncEmla_Logic(request);
+        });
+
+        this.on('updateSessionStatus', async (request) => {
+            return sessionStatus_Logic.updateSessionStatus(request);
         });
 
         return super.init();

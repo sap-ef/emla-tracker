@@ -1,0 +1,12 @@
+{ 
+  "role": { 
+    "name": "DWC_CONSUMPTION_ROLE", 
+    "object_privileges": [ 
+      { 
+        "name":"EMLATRACKER_EMLACUSTOMERS", 
+        "type":"TABLE", 
+        "privileges":[ "SELECT" ] 
+      }
+    ]
+  }
+}

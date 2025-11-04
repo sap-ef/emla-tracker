@@ -1,27 +1,36 @@
 namespace EMLATracker;
 
+using {managed} from '@sap/cds/common';
+
 @assert.unique.uniqueCustomerProduct: [
   customerNumber,
   emlaType
 ]
-entity EMLACustomers {
-  key ID             : UUID;
-      externalID     : String(40);
-      customerName   : String(250);
-      customerNumber : String(20);
-      emlaType       : String(50);
-      region         : String(25);
-      country        : String(25);
-      startDate      : Date;
-      erpOnbAdvNome  : String(100);
-      btpOnbAdvNome  : String(100);
-      btpOnbAdvEmail : String(100);
-      status         : String(100);
-      trackApp       : String(36);
-      completedOn    : Date;
+entity EMLACustomers : managed {
+  key ID                     : UUID;
+      externalID             : String(40);
+      customerName           : String(250);
+      customerNumber         : String(20);
+      emlaType               : String(50);
+      region                 : String(25);
+      country                : String(25);
+      startDate              : Date;
+      erpOnbAdvNome          : String(100);
+      btpOnbAdvNome          : String(100);
+      btpOnbAdvEmail         : String(100);
+      status                 : String(100);
+      trackApp               : String(36);
+      trackAppTP2            : String(36);
+      trackAppSH             : String(36);
+
+      isTrackAppCompleted    : Boolean default false;
+      isTrackAppTP2Completed : Boolean default false;
+      isTrackAppSHCompleted  : Boolean default false;
+
+      completedOn            : Date;
 }
 
-entity EMLATypeVH as
+entity EMLATypeVH       as
   select from EMLACustomers {
     key emlaType
   }
@@ -36,8 +45,8 @@ entity BTPOnbAdvEmailVH as
     btpOnbAdvEmail;
 
 entity OnboardAdvisors {
-    key onbAdvisor : String;
-        name       : String;
-        email      : String;
+  key onbAdvisor : String;
+      name       : String;
+      email      : String;
 
 }

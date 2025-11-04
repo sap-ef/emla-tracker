@@ -86,104 +86,111 @@ module.exports = async function syncEMLAData(request) {
     let updated = 0;
     const errors = [];
 
-    // Process each record
-    for (const record of externalData) {
-      // Normalize possible customer identifier fields from external service
-      // Some services use customerId, some use customerNumber; fallback to ID
-      record.customerNumber =
-        record.customerNumber || record.customerId || record.ID || null;
+    // Build normalized view of incoming data first
+    const normalized = externalData.map(r => {
+      return {
+        raw: r,
+        customerNumber: r.customerNumber || r.customerId || r.ID || null,
+        customerName: r.customerName,
+        emlaType: r.emLAType?.name || r.emlaType || null,
+        region: r.region?.name || r.region || null,
+        country: r.country?.name || r.country || null,
+        erpUserId: r.onboardingAdvisor_userId || null,
+        btpUserId: r.btpOnboardingAdvisor_userId || null,
+        startDate: r.startDate || null,
+        externalID: r.ID || null
+      };
+    });
+
+    // Filter out rows missing required fields early
+    const candidates = normalized.filter(n => n.customerNumber && n.customerName && n.emlaType);
+
+    // Prefetch existing records for all composite keys to minimize round trips
+    if (candidates.length) {
+      const uniqueKeys = Array.from(new Set(candidates.map(c => `${c.customerNumber}||${c.emlaType}`)));
+      const keyConditions = uniqueKeys.map(key => {
+        const [customerNumber, emlaType] = key.split('||');
+        return { customerNumber, emlaType };
+      });
+      // CAP doesn't support OR array directly; fetch all then map
+      const existingAll = await SELECT.from(EMLACustomers).where({ customerNumber: { 'in': candidates.map(c => c.customerNumber) } });
+      var existingMap = new Map();
+      for (const ex of existingAll) {
+        existingMap.set(`${ex.customerNumber}||${ex.emlaType}`, ex);
+      }
+    } else {
+      var existingMap = new Map();
+    }
+
+    // Advisor enrichment: if we only have userId, attempt to map to known advisor name/email from OnboardAdvisors
+    let advisorTable = await SELECT.from('EMLATracker.OnboardAdvisors');
+    const advisorNameById = new Map();
+    const advisorEmailById = new Map();
+    for (const adv of advisorTable) {
+      // Assume onbAdvisor field might store userId or key
+      advisorNameById.set(adv.onbAdvisor, adv.name);
+      advisorEmailById.set(adv.onbAdvisor, adv.email);
+    }
+
+    for (const n of normalized) {
+      if (!n.customerNumber || !n.customerName || !n.emlaType) {
+        errors.push({ record: n.raw, reason: 'Missing required fields: customerName, customerNumber or emlaType' });
+        continue;
+      }
+
+      const key = `${n.customerNumber}||${n.emlaType}`;
+      const existing = existingMap.get(key);
+
+      // Derive advisor names
+      const erpAdvName = n.erpUserId || existing?.erpOnbAdvNome || n.raw.erpOnbAdvNome || null;
+      let btpAdvName = n.btpUserId || existing?.btpOnbAdvNome || n.raw.btpOnbAdvNome || null;
+      let btpAdvEmail = n.raw.btpOnbAdvEmail || existing?.btpOnbAdvEmail || null;
+
+      // Enrich if only userId present (and no readable name) using OnboardAdvisors
+      if (n.btpUserId && (!btpAdvName || btpAdvName === n.btpUserId)) {
+        if (advisorNameById.has(n.btpUserId)) btpAdvName = advisorNameById.get(n.btpUserId);
+        if (advisorEmailById.has(n.btpUserId) && !btpAdvEmail) btpAdvEmail = advisorEmailById.get(n.btpUserId);
+      }
+
       try {
-        // Validate required fields
-        if (!record.customerName || !record.customerNumber) {
-          errors.push({
-            record: record,
-            reason: "Missing required fields: customerName or customerNumber",
-          });
-          continue;
-        }
-
-        // Determine emlaType from the external record (may be nested)
-        const emlaTypeFromRecord =
-          record.emLAType?.name || record.emlaType || null;
-
-        // If there is no emlaType associated, skip this row (per requirement)
-        if (!emlaTypeFromRecord) {
-          LOG.info(
-            `Skipping record ${
-              record.customerNumber || record.customerId || record.ID
-            } - missing emlaType`
-          );
-          continue;
-        }
-
-        // Check if customer already exists (match both customerNumber and emlaType when available)
-        let existing = await SELECT.one
-          .from(EMLACustomers)
-          .where({
-            customerNumber: record.customerNumber,
-            emlaType: emlaTypeFromRecord,
-          });
-
-        // Extract expanded navigation properties
-        // OData $expand returns nested objects: country, emLAType, region
-        const emlaTypeName = emlaTypeFromRecord || existing?.emlaType;
-        const regionName =
-          record.region?.name || record.region || existing?.region;
-        const countryName =
-          record.country?.name || record.country || existing?.country;
-        const erpAdvName =
-          record.onboardingAdvisor_userId ||
-          record.erpOnbAdvNome ||
-          existing?.erpOnbAdvNome;
-        const btpAdvName =
-          record.btpOnboardingAdvisor_userId ||
-          record.btpOnbAdvNome ||
-          existing?.btpOnbAdvNome;
-
         if (existing) {
-          // Update existing record
-          await UPDATE(EMLACustomers)
-            .set({
-              customerName: record.customerName,
-              emlaType: emlaTypeName,
-              region: regionName,
-              country: countryName,
-              startDate: record.startDate || existing.startDate,
-              erpOnbAdvNome: erpAdvName,
-              btpOnbAdvNome: btpAdvName,
-              btpOnbAdvEmail: record.btpOnbAdvEmail || existing.btpOnbAdvEmail,
-              // Keep existing status and completion data
-              status: existing.status,
-              completedOn: existing.completedOn,
-            })
-            .where({ ID: existing.ID });
+          // Only update changed fields to reduce delta churn
+          const delta = {};
+          if (n.customerName && n.customerName !== existing.customerName) delta.customerName = n.customerName;
+          if (n.emlaType && n.emlaType !== existing.emlaType) delta.emlaType = n.emlaType; // Should rarely change
+          if (n.region && n.region !== existing.region) delta.region = n.region;
+          if (n.country && n.country !== existing.country) delta.country = n.country;
+          if (n.startDate && n.startDate !== existing.startDate) delta.startDate = n.startDate;
+          if (erpAdvName && erpAdvName !== existing.erpOnbAdvNome) delta.erpOnbAdvNome = erpAdvName;
+          if (btpAdvName && btpAdvName !== existing.btpOnbAdvNome) delta.btpOnbAdvNome = btpAdvName;
+          if (btpAdvEmail && btpAdvEmail !== existing.btpOnbAdvEmail) delta.btpOnbAdvEmail = btpAdvEmail;
+          if (n.externalID && n.externalID !== existing.externalID) delta.externalID = n.externalID;
 
-          updated++;
-          LOG.info(`Updated customer: ${record.customerNumber}`);
+          if (Object.keys(delta).length) {
+            await UPDATE(EMLACustomers).set(delta).where({ ID: existing.ID });
+            updated++;
+            LOG.info(`Updated customer: ${n.customerNumber} (${Object.keys(delta).join(',')})`);
+          }
         } else {
-          // Insert new record
           await INSERT.into(EMLACustomers).entries({
-            customerName: record.customerName,
-            customerNumber: record.customerNumber,
-            emlaType: emlaTypeName,
-            region: regionName,
-            country: countryName,
-            startDate: record.startDate,
+            customerName: n.customerName,
+            customerNumber: n.customerNumber,
+            emlaType: n.emlaType,
+            region: n.region,
+            country: n.country,
+            startDate: n.startDate,
             erpOnbAdvNome: erpAdvName,
             btpOnbAdvNome: btpAdvName,
-            btpOnbAdvEmail: record.btpOnbAdvEmail,
-            status: "Not Started",
+            btpOnbAdvEmail: btpAdvEmail,
+            externalID: n.externalID,
+            status: 'Not Started'
           });
-
           inserted++;
-          LOG.info(`Inserted new customer: ${record.customerNumber}`);
+          LOG.info(`Inserted new customer: ${n.customerNumber}`);
         }
       } catch (err) {
-        LOG.error(`Error processing record ${record.customerNumber}:`, err);
-        errors.push({
-          record: record,
-          reason: err.message,
-        });
+        LOG.error(`Error processing record ${n.customerNumber}:`, err);
+        errors.push({ record: n.raw, reason: err.message });
       }
     }
 

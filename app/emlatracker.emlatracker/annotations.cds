@@ -85,12 +85,6 @@ annotate service.EMLACustomers with @(
         },
         {
             $Type                : 'UI.DataField',
-            Value                : status,
-            Label                : 'Status',
-            ![@HTML5.CssDefaults]: {width: '120px'},
-        },
-        {
-            $Type                : 'UI.DataField',
             Value                : completedOn,
             Label                : 'Completed On',
             ![@HTML5.CssDefaults]: {width: '110px'},

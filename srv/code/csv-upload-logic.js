@@ -56,6 +56,50 @@ function normalizeHeader(h) {
     return h.toString().trim().toLowerCase().replace(/\s+/g, ' ').replace(/[\"']/g, '');
 }
 
+// Function to sanitize text fields that might contain problematic content
+function sanitizeTextField(value, maxLength = 5000) {
+    if (!value) return '';
+    
+    let cleanValue = value.toString().trim();
+    
+    // Remove or replace problematic characters
+    cleanValue = cleanValue
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '') // Remove control characters
+        .replace(/\r\n/g, '\n') // Normalize line endings
+        .replace(/\r/g, '\n') // Convert remaining \r to \n
+        .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines
+        .replace(/\t/g, ' ') // Convert tabs to spaces
+        .replace(/ {2,}/g, ' '); // Collapse multiple spaces
+    
+    // Truncate to respect field length limits
+    if (cleanValue.length > maxLength) {
+        cleanValue = cleanValue.substring(0, maxLength - 3) + '...';
+    }
+    
+    return cleanValue;
+}
+
+// Function to sanitize fields based on their expected schema limits
+function sanitizeFieldByType(value, fieldName) {
+    if (!value) return '';
+    
+    const fieldLimits = {
+        'customerName': 250,
+        'customerNumber': 20,
+        'emlaType': 50,
+        'region': 25,
+        'country': 25,
+        'erpOnbAdvNome': 100,
+        'btpOnbAdvNome': 100,
+        'btpOnbAdvEmail': 100,
+        'status': 100,
+        'externalID': 40
+    };
+    
+    const maxLength = fieldLimits[fieldName] || 5000; // Back to original 5000
+    return sanitizeTextField(value, maxLength);
+}
+
 function parseDateToISO(s) {
     if (!s) return null;
     s = s.trim();
@@ -89,6 +133,23 @@ function isMeaningfulCandidate(val) {
     return true;
 }
 
+// Specialized check for advisor names: allow short surnames, commas, and accented chars; disallow pure booleans / digits
+function isMeaningfulAdvisorName(val) {
+    if (!val && val !== 0) return false;
+    const s = ('' + val).trim();
+    if (!s) return false;
+    const low = s.toLowerCase();
+    if (['yes','no','true','false','n/a','na','none','-','ok'].includes(low)) return false;
+    // Reject purely numeric or single char
+    if (/^[0-9]+$/.test(s)) return false;
+    if (s.length < 2) return false; // allow 2-char initials like 'Li'
+    // Accept if contains comma or space (Lastname, Firstname or Firstname Lastname)
+    if (/[ ,]/.test(s)) return true;
+    // Accept alphabetic (including accents) words length >=2
+    if (/^[A-Za-zÀ-ÖØ-öø-ÿ'.-]{2,}$/.test(s)) return true;
+    return false;
+}
+
 module.exports = async function(request) {
     const { csvData } = request.data;
     if (!csvData) {
@@ -104,9 +165,11 @@ module.exports = async function(request) {
             'emla staffing for btp': 'EmLA Staffing for BTP',
             'customer id': 'Customer ID',
             'customer number': 'Customer ID',
+            'customer number': 'Customer ID',
             'account name': 'Account Name',
             'btp onb advisor': 'BTP ONB Advisor',
             'btp onboarding advisor': 'BTP Onboarding Advisor',
+            's/4hana finance onb advisor': 'S/4HANA Finance ONB Advisor',
             'region lvl 1': 'Region Lvl 1',
             'region l5/country': 'Region L5/Country',
             region: 'Region',
@@ -116,19 +179,56 @@ module.exports = async function(request) {
             'crt link': 'CRT Link',
             'cloud erp onboarding advisor': 'Cloud ERP Onboarding Advisor',
             id: 'ID'
-        };
+        }
 
-        // Use PapaParse in header mode so we rely entirely on PapaParse for CSV handling
-        const parsed = Papa.parse(csvData, {
+        // Simple CSV preprocessing - just basic cleanup
+        function preprocessCSV(data) {
+            // Remove BOM if present
+            let cleaned = data.replace(/^\uFEFF/, '');
+            
+            // Normalize line endings
+            cleaned = cleaned.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            
+            return cleaned;
+        }
+
+    // Preprocess the CSV data
+    const processedCsvData = preprocessCSV(csvData);
+    const headerLineRaw = processedCsvData.split(/\n/,1)[0] || '';
+    const autoDelim = detectDelimiter(headerLineRaw);
+    console.log('[CSVUPLOAD] Detected delimiter:', JSON.stringify(autoDelim), 'Header preview length:', headerLineRaw.length);
+
+        // Use PapaParse with simple, reliable configuration
+        const parsed = Papa.parse(processedCsvData, {
             header: true,
             skipEmptyLines: true,
+            delimiter: autoDelim, // explicitly use detected delimiter to avoid mis-detection on complex lines
             quoteChar: '"',
             transformHeader: function(h) {
                 const n = normalizeHeader(h).replace(/\uFEFF/g, '');
                 return HEADER_SYNONYMS[n] || (h ? h.toString().trim().replace(/"/g, '') : '');
             }
         });
+        
         const data = parsed && parsed.data ? parsed.data : [];
+        console.log(`Parsed ${data.length} rows from CSV`);
+        
+        // Only fail on truly critical errors
+        if (parsed.errors && parsed.errors.length > 0) {
+            const criticalErrors = parsed.errors.filter(err => 
+                err.code === 'UndetectableDelimiter'
+            );
+            
+            if (criticalErrors.length > 0) {
+                console.error('Critical CSV parsing errors:', criticalErrors);
+                const errorMessages = criticalErrors.map(err => `Row ${err.row}: ${err.message}`).join('; ');
+                request.error(400, `CSV parsing errors: ${errorMessages}`);
+                return;
+            } else {
+                console.log('Non-critical parsing errors detected, continuing with available data');
+            }
+        }
+        
         if (!data || data.length === 0) {
             request.error(400, 'CSV file is empty or has no data rows');
             return;
@@ -137,19 +237,19 @@ module.exports = async function(request) {
         // Mapping from various Integration Suite header names to our expected model fields
         const headerMap = {
             'account name': 'customerName',
-            'opp_accountname': 'customerName',
             'accountname': 'customerName',
             'erp cust number': 'customerNumber',
             'erp cust no': 'customerNumber',
             'erp cust number': 'customerNumber',
             'erp customer number': 'customerNumber',
+            'customer id': 'customerNumber',
+            'customer number': 'customerNumber',
             'product list': 'emlaType',
             'productlist': 'emlaType',
             'emla staffing for btp': 'btpOnbAdvNome',
             'btp onb advisor': 'btpOnbAdvNome',
             'btp onb advisor email': 'btpOnbAdvEmail',
             'btp onboard advisor email': 'btpOnbAdvEmail',
-            'emla staffing for sap cloud erp': 'erpOnbAdvNome',
             'region lvl 1': 'region',
             'region lvl 2': 'region',
             'region lvl 5/country': 'country',
@@ -201,6 +301,7 @@ module.exports = async function(request) {
                     'BTP Onboarding Advisor': 'btpOnbAdvNome',
                     'BTP Onboarding Advisor Email': 'btpOnbAdvEmail',
                     'Cloud ERP Onboarding Advisor': 'erpOnbAdvNome',
+                    'S/4HANA Finance ONB Advisor': 'erpOnbAdvNome',
                     Region: 'region',
                     Country: 'country',
                     'Contract Start Date': 'startDate'
@@ -231,6 +332,7 @@ module.exports = async function(request) {
             const headers = Object.keys(raw).filter(k => k !== '__rawHeaders' && k !== '__tokens');
             const has = name => headers.indexOf(name) !== -1;
             let mapping = null; let mappingType = 'unknown';
+            let customerNumberSource = 'unknown';
 
             // If caller provided a forcedType from the UI, use it explicitly to choose mapping
             // Support forcedType values coming from UI or API. Accept both short keys and explicit mapping names.
@@ -268,12 +370,27 @@ module.exports = async function(request) {
                 else if (renameNorm[norm]) target = renameNorm[norm];
                 else if (headerMap[norm]) target = headerMap[norm];
                 else target = originalKey;
-                result[target] = raw[originalKey];
+                const incomingVal = raw[originalKey];
+                if (target === 'erpOnbAdvNome' && result[target] && isMeaningfulAdvisorName(result[target]) && (!incomingVal || !isMeaningfulAdvisorName(incomingVal))) {
+                    // keep existing meaningful advisor name; skip overwrite
+                    continue;
+                }
+                result[target] = incomingVal;
+                if (target === 'customerNumber' && incomingVal) {
+                    customerNumberSource = 'direct:' + originalKey;
+                }
             }
 
             // Map startDate field
             if (result.startDate) { result.startDateL = result.startDate; delete result.startDate; }
-            if (result.ID && !result.externalID) { result.externalID = result.ID; delete result.ID; }
+            // Always prefer explicit ID column for externalID (override previous heuristic/customerNumber)
+            if (result.ID) {
+                // External ID deve sempre vir da coluna ID explícita do outro sistema
+                if (!result.externalID || result.externalID !== result.ID) {
+                    result.externalID = result.ID;
+                }
+                delete result.ID; // remover campo temporário
+            }
 
             // Positional fallbacks for IntegrationSuite
             if (mappingType === 'IntegrationSuite') {
@@ -289,7 +406,7 @@ module.exports = async function(request) {
                     }
                     return -1;
                 };
-                const accIdx = findIndex(['Account Name','Opp_AccountName']);
+                const accIdx = findIndex(['Account Name']);
                 if (accIdx >= 0 && tokens[accIdx]) result.customerName = tokens[accIdx].trim();
                 const regionIdx = findIndex(['Region Lvl 1','Region']);
                 if (regionIdx >= 0 && tokens[regionIdx]) result.region = tokens[regionIdx].trim();
@@ -317,11 +434,7 @@ module.exports = async function(request) {
                         }
                     }
                 }
-                if (!result.externalID) {
-                    if (result.customerNumber && result.customerName) result.externalID = `IS_${result.customerName.replace(/\s+/g,'_')}_${result.customerNumber}`;
-                    else if (result.customerName) result.externalID = `IS_${result.customerName.replace(/\s+/g,'_')}_${Date.now()}`;
-                    else result.externalID = `IS_UNKNOWN_${Date.now()}`;
-                }
+                // REMOVIDO: não gerar externalID sintético para IntegrationSuite; deve vir somente de coluna ID se fornecida
             }
 
             // PubCloudERP positional fallbacks
@@ -338,7 +451,7 @@ module.exports = async function(request) {
                     }
                     return -1;
                 };
-                const accIdx = findIndex(['Customer Name','Account Name','Opp_AccountName','AccountName','Account Name']);
+                const accIdx = findIndex(['Customer Name','Account Name','AccountName','Account Name']);
                 if (accIdx >= 0 && tokens[accIdx]) result.customerName = tokens[accIdx].trim();
                 const custIdx = findIndex(['Customer ID','ERP Cust Number','Customer Number','ERP Cust#','ERP Cust']);
                 if (custIdx >= 0) {
@@ -346,6 +459,7 @@ module.exports = async function(request) {
                     if (val) {
                         if (!result.customerNumber) result.customerNumber = val;
                         if (!result.externalID) result.externalID = val;
+                        if (!customerNumberSource) customerNumberSource = 'positional:Customer ID';
                     }
                 }
                 // Also try extracting customerNumber from CRT Link (same logic as IntegrationSuite)
@@ -359,6 +473,7 @@ module.exports = async function(request) {
                             const m2 = possiblePub.match(/(\d{4,})/);
                             if (m2) result.customerNumber = m2[1];
                         }
+                        if (result.customerNumber && !customerNumberSource) customerNumberSource = 'fallback:CRT Link';
                     } else if (crtIdxPub >= 0 && tokens[crtIdxPub]) {
                         const t = tokens[crtIdxPub];
                         const match = t.match(/id=(\d+)/i);
@@ -367,10 +482,11 @@ module.exports = async function(request) {
                             const m2 = t.match(/(\d{4,})/);
                             if (m2) result.customerNumber = m2[1];
                         }
+                        if (result.customerNumber && !customerNumberSource) customerNumberSource = 'fallback:CRT Link(token)';
                     }
                 }
                 const idIdx = findIndex(['ID']);
-                if ((!result.externalID || result.externalID.indexOf('UNKNOWN') === 0) && idIdx >= 0 && tokens[idIdx]) { result.ID = tokens[idIdx].trim(); if (!result.externalID) result.externalID = result.ID; }
+                if (idIdx >= 0 && tokens[idIdx]) { result.ID = tokens[idIdx].trim(); if (!result.externalID) result.externalID = result.ID; }
             }
 
             // cross-mapping fallbacks
@@ -383,8 +499,13 @@ module.exports = async function(request) {
                     if (isMeaningfulCandidate(candidate)) result.btpOnbAdvEmail = (candidate+'').trim();
                 }
                 if (!result.erpOnbAdvNome) {
-                    const candidate2 = raw['S/4HANA Finance ONB Advisor'] || '';
-                    if (isMeaningfulCandidate(candidate2)) result.erpOnbAdvNome = (candidate2+'').trim();
+                    const candidate2 = raw['S/4HANA Finance ONB Advisor'] || raw['Cloud ERP Onboarding Advisor'] || '';
+                    if (candidate2 && isMeaningfulAdvisorName(candidate2)) {
+                        result.erpOnbAdvNome = (candidate2+'').trim();
+                        console.log('[CSVUPLOAD] ERP advisor captured from raw headers:', result.erpOnbAdvNome);
+                    } else if (candidate2) {
+                        console.log('[CSVUPLOAD] ERP advisor value present but rejected by advisor validator:', candidate2);
+                    }
                 }
                 if (!result.CRTLink) { if (raw['CRT Link']) result.CRTLink = (raw['CRT Link']+'').trim(); else if (raw['CRTLink']) result.CRTLink = (raw['CRTLink']+'').trim(); }
             } catch (e) {}
@@ -405,11 +526,33 @@ module.exports = async function(request) {
                 else if (v.indexOf('integration') !== -1 || v.indexOf('integration suite') !== -1) result.emlaType = 'Integration Suite';
             } catch (e) {}
 
+            // Universal CRT extraction BEFORE logging so we see final value in debug
+            try {
+                const crtRawUniversal = (raw['CRT Link'] || raw['CRTLink'] || result.CRTLink || '').toString().trim();
+                if (crtRawUniversal) {
+                    let extractedU = null;
+                    const matchIdU = crtRawUniversal.match(/id=(\d+)/i);
+                    if (matchIdU) extractedU = matchIdU[1];
+                    else {
+                        const matchNumU = crtRawUniversal.match(/(\d{4,})/);
+                        if (matchNumU) extractedU = matchNumU[1];
+                    }
+                    if (extractedU) {
+                        if (result.customerNumber !== extractedU) {
+                            console.log('[CSVUPLOAD] CRT extraction overriding customerNumber (pre-log):', extractedU, 'previous:', result.customerNumber, 'mappingType:', mappingType);
+                            result.customerNumber = extractedU;
+                            customerNumberSource = 'universalCRT';
+                        }
+                        // Não atribuir externalID a partir de CRT; somente customerNumber deve ser ajustado
+                    }
+                }
+            } catch(e) { /* ignore universal CRT */ }
+
             console.log(`Mapping Debug for ${mappingType}:`);
             console.log('Original headers:', Object.keys(raw));
             console.log('Raw row data:', raw);
             console.log('Applied rename map:', mapping.rename_map);
-            console.log('Mapped result:', {
+            console.log('Mapped result (post CRT extraction):', {
                 customerName: result.customerName,
                 customerNumber: result.customerNumber,
                 region: result.region,
@@ -418,17 +561,28 @@ module.exports = async function(request) {
                 startDateL: result.startDateL,
                 erpOnbAdvNome: result.erpOnbAdvNome,
                 btpOnbAdvEmail: result.btpOnbAdvEmail,
-                CRTLink: result.CRTLink
+                CRTLink: result.CRTLink,
+                customerNumberSource: customerNumberSource
             });
+            if (mappingType === 'IntegrationSuite') {
+                console.log('[CSVUPLOAD] IntegrationSuite final customerNumber (after CRT logic):', result.customerNumber, 'source:', customerNumberSource);
+            }
+            if (!result.erpOnbAdvNome && (raw['S/4HANA Finance ONB Advisor'] || raw['Cloud ERP Onboarding Advisor'])) {
+                console.log('DEBUG ERP Advisor header present but value considered empty or not meaningful. Raw value(s):', raw['S/4HANA Finance ONB Advisor'], raw['Cloud ERP Onboarding Advisor']);
+            }
 
             return { record: result, mappingType };
         }
 
         // End of mapRecord definition
         // Now iterate rows using mapRecord for robust mapping
-        const recordsToInsert2 = [];
-        const errors2 = [];
-        const failedRawRows2 = [];
+    const recordsToInsert2 = [];
+    const errors2 = [];
+    const failedRawRows2 = [];
+    let skippedNoAdvisor = 0; // count of PubCloudERP rows skipped due to missing BTP advisor (not treated as error)
+    let validationErrorCount = 0; // missing required field errors
+    let dbErrorCount = 0; // insert / DB-level errors
+    let recoveredAdvisorCount = 0; // rows where advisor was recovered via fallback
 
         // Prepare advisor lookup maps (so we can enrich names/emails from OnboardAdvisors)
         let advisorEmailMap = {};
@@ -493,34 +647,30 @@ module.exports = async function(request) {
 
             // If PubCloudERP import must include BTP Onboarding Advisor, skip rows lacking it
             if (mappingType === 'PubCloudERP' && (!mappedRecord.btpOnbAdvNome || (mappedRecord.btpOnbAdvNome + '').trim() === '')) {
-                errors2.push({ row: csvRowNumber, reason: 'Missing BTP Onboarding Advisor (required for Public Cloud ERP import)' });
-                failedRawRows2.push(rowObj);
-                continue;
+                // Attempt fallback extraction from alternative columns before skipping
+                try {
+                    const fallbackCandidate = (rowObj['BTP Onboarding Advisor'] || rowObj['BTP ONB Advisor'] || rowObj['EmLA Staffing for BTP'] || rowObj['EmLA Staffing for SAP Cloud ERP'] || '').toString().trim();
+                    if (fallbackCandidate && isMeaningfulCandidate(fallbackCandidate)) {
+                        mappedRecord.btpOnbAdvNome = fallbackCandidate;
+                        recoveredAdvisorCount++;
+                        console.log('[CSVUPLOAD] Recovered advisor via fallback for row', csvRowNumber, 'advisor=', fallbackCandidate);
+                    }
+                } catch (e) { /* ignore */ }
+                if (!mappedRecord.btpOnbAdvNome || !(mappedRecord.btpOnbAdvNome+'').trim()) {
+                    skippedNoAdvisor++;
+                    console.log('[CSVUPLOAD] Skipping row (no advisor, PubCloudERP): csvRow', csvRowNumber, 'customerName=', mappedRecord.customerName, 'customerNumber=', mappedRecord.customerNumber, 'rawAdvisorFields={BTP Onboarding Advisor:', rowObj['BTP Onboarding Advisor'], ', EmLA Staffing for BTP:', rowObj['EmLA Staffing for BTP'],'}');
+                    continue;
+                }
             }
 
             if (!mappedRecord.customerName || !mappedRecord.customerNumber || !mappedRecord.emlaType) {
+                validationErrorCount++;
                 errors2.push({ row: csvRowNumber, reason: 'Missing required fields (customerName, customerNumber, emlaType)' });
                 failedRawRows2.push(rowObj);
                 continue;
             }
 
-            // Advisor enrichment: directly query the OnboardAdvisors table by onbAdvisor using the provided field
-            try {
-                if (mappedRecord.btpOnbAdvNome) {
-                    try {
-                        const dbRes = await SELECT.one.from('OnboardAdvisors').where({ onbAdvisor: mappedRecord.btpOnbAdvNome });
-                        if (dbRes) {
-                            mappedRecord.btpOnbAdvEmail = dbRes.email || mappedRecord.btpOnbAdvEmail || '';
-                            mappedRecord.btpOnbAdvNome = dbRes.name || mappedRecord.btpOnbAdvNome;
-                        }
-                    } catch (e) {
-                        // if DB lookup fails, continue without enrichment
-                        console.warn('OnboardAdvisors per-row lookup failed:', e && e.message);
-                    }
-                }
-            } catch (e) {
-                // ignore enrichment-level failures
-            }
+            // Defer advisor enrichment to bulk phase (removed per-row SELECT)
             // Debug: log first few parsed rows and mapped result to diagnose mapping issues
             try {
                 if (r < 5) {
@@ -532,32 +682,241 @@ module.exports = async function(request) {
             // If advisor fields are not meaningful (e.g., 'Yes'), clear them
             if (!isMeaningfulCandidate(mappedRecord.btpOnbAdvNome)) mappedRecord.btpOnbAdvNome = '';
             if (!isMeaningfulCandidate(mappedRecord.btpOnbAdvEmail)) mappedRecord.btpOnbAdvEmail = '';
+            // Heuristic: if name missing and email field holds a probable name (no '@', contains space/comma), treat it as name
+            if (!mappedRecord.btpOnbAdvNome && mappedRecord.btpOnbAdvEmail) {
+                const possibleName = mappedRecord.btpOnbAdvEmail.trim();
+                if (possibleName && possibleName.indexOf('@') === -1 && /[ ,]/.test(possibleName)) {
+                    mappedRecord.btpOnbAdvNome = possibleName;
+                    mappedRecord.btpOnbAdvEmail = '';
+                }
+            }
+
+            // Sanitize all text fields to respect schema limits and remove problematic characters
+            mappedRecord.customerName = sanitizeFieldByType(mappedRecord.customerName, 'customerName');
+            mappedRecord.customerNumber = sanitizeFieldByType(mappedRecord.customerNumber, 'customerNumber');
+            mappedRecord.emlaType = sanitizeFieldByType(mappedRecord.emlaType, 'emlaType');
+            mappedRecord.region = sanitizeFieldByType(mappedRecord.region, 'region');
+            mappedRecord.country = sanitizeFieldByType(mappedRecord.country, 'country');
+            // Prevent boolean-like tokens ("Yes"/"No") from being stored as advisor names
+            if (mappedRecord.erpOnbAdvNome && !isMeaningfulAdvisorName(mappedRecord.erpOnbAdvNome)) {
+                console.log('[CSVUPLOAD] Clearing erpOnbAdvNome as non-meaningful:', mappedRecord.erpOnbAdvNome);
+                mappedRecord.erpOnbAdvNome = '';
+            }
+            mappedRecord.erpOnbAdvNome = sanitizeFieldByType(mappedRecord.erpOnbAdvNome, 'erpOnbAdvNome');
+            mappedRecord.btpOnbAdvNome = sanitizeFieldByType(mappedRecord.btpOnbAdvNome, 'btpOnbAdvNome');
+            mappedRecord.btpOnbAdvEmail = sanitizeFieldByType(mappedRecord.btpOnbAdvEmail, 'btpOnbAdvEmail');
+            if (mappedRecord.externalID) {
+                mappedRecord.externalID = sanitizeFieldByType(mappedRecord.externalID, 'externalID');
+            }
 
             mappedRecord.ID = cds.utils.uuid();
             mappedRecord.status = 'Open';
+            mappedRecord.csvRowNumber = csvRowNumber; // retain original CSV row number for downstream error logging
+            // Preserve initial advisor references for advisor-not-found diagnostics post enrichment
+            mappedRecord._initialAdvisorName = mappedRecord.btpOnbAdvNome;
+            mappedRecord._initialAdvisorEmail = mappedRecord.btpOnbAdvEmail;
             recordsToInsert2.push(mappedRecord);
         }
 
-        // Perform inserts one-by-one so a single failing INSERT (e.g. UNIQUE constraint)
-        // does not abort the whole upload. Collect per-row errors for reporting.
+        // --- Bulk Advisor Enrichment (single/multi SELECT to minimize DB calls) ---
+        try {
+            const nameCandidates = new Set();
+            const emailCandidates = new Set();
+            for (const rec of recordsToInsert2) {
+                if (rec.btpOnbAdvNome && rec.btpOnbAdvNome.trim()) nameCandidates.add(rec.btpOnbAdvNome.trim());
+                if (rec.btpOnbAdvEmail && rec.btpOnbAdvEmail.trim()) emailCandidates.add(rec.btpOnbAdvEmail.trim());
+            }
+
+            const nameList = Array.from(nameCandidates);
+            const emailList = Array.from(emailCandidates);
+            let byName = [];
+            let byEmail = [];
+            if (nameList.length > 0) {
+                try { byName = await SELECT.from('OnboardAdvisors').where({ onbAdvisor: { 'in': nameList } }); } catch(e){ console.warn('Bulk advisor byName failed:', e.message); }
+            }
+            if (emailList.length > 0) {
+                try { byEmail = await SELECT.from('OnboardAdvisors').where({ email: { 'in': emailList } }); } catch(e){ console.warn('Bulk advisor byEmail failed:', e.message); }
+            }
+            const indexByName = new Map();
+            const indexByEmail = new Map();
+            [...byName, ...byEmail].forEach(row => {
+                if (row.onbAdvisor) indexByName.set(row.onbAdvisor.trim(), row);
+                if (row.email) indexByEmail.set(row.email.trim(), row);
+            });
+            for (const rec of recordsToInsert2) {
+                // enrich based on advisor name
+                if (rec.btpOnbAdvNome && indexByName.has(rec.btpOnbAdvNome.trim())) {
+                    const row = indexByName.get(rec.btpOnbAdvNome.trim());
+                    rec.btpOnbAdvEmail = row.email || rec.btpOnbAdvEmail || '';
+                    rec.btpOnbAdvNome = row.name || row.onbAdvisor || rec.btpOnbAdvNome;
+                }
+                // if name missing but email present, enrich by email
+                if ((!rec.btpOnbAdvNome || !rec.btpOnbAdvNome.trim()) && rec.btpOnbAdvEmail && indexByEmail.has(rec.btpOnbAdvEmail.trim())) {
+                    const rowE = indexByEmail.get(rec.btpOnbAdvEmail.trim());
+                    rec.btpOnbAdvNome = rowE.name || rowE.onbAdvisor || rec.btpOnbAdvNome || '';
+                }
+                // final cleanup
+                if (!isMeaningfulCandidate(rec.btpOnbAdvNome)) rec.btpOnbAdvNome = '';
+                if (!isMeaningfulCandidate(rec.btpOnbAdvEmail)) rec.btpOnbAdvEmail = '';
+            }
+            console.log('Bulk advisor enrichment complete. byName rows:', byName.length, 'byEmail rows:', byEmail.length);
+        } catch (e) {
+            console.warn('Bulk advisor enrichment outer failure:', e && e.message);
+        }
+        // --- End Bulk Advisor Enrichment ---
+
+        // Identify rows where an advisor value was provided but no match found in lookup tables
+        let advisorNotFoundCount = 0;
+        try {
+            for (const rec of recordsToInsert2) {
+                const initName = rec._initialAdvisorName && rec._initialAdvisorName.trim();
+                const initEmail = rec._initialAdvisorEmail && rec._initialAdvisorEmail.trim();
+                const finalName = rec.btpOnbAdvNome && rec.btpOnbAdvNome.trim();
+                const finalEmail = rec.btpOnbAdvEmail && rec.btpOnbAdvEmail.trim();
+
+                // Skip if enrichment produced a final name or email (advisor successfully resolved)
+                if (finalName || finalEmail) continue;
+
+                // Only log if an initial advisor value was supplied but produced no final advisor fields and no lookup match
+                if (initName) {
+                    const hasMatchName = advisorNameMap[initName.toLowerCase()] || advisorKeyMap[initName.toLowerCase()] || advisorEmailMap[initName.toLowerCase()] || false;
+                    if (!hasMatchName) {
+                        advisorNotFoundCount++;
+                        errors2.push({ row: rec.csvRowNumber, reason: `Onboarding advisor (name) not found: ${initName}` });
+                        failedRawRows2.push(Object.assign({}, rec, { __advisorMissing: initName }));
+                    }
+                } else if (initEmail) {
+                    const hasMatchEmail = advisorEmailMap[initEmail.toLowerCase()] || false;
+                    if (!hasMatchEmail) {
+                        advisorNotFoundCount++;
+                        errors2.push({ row: rec.csvRowNumber, reason: `Onboarding advisor (email) not found: ${initEmail}` });
+                        failedRawRows2.push(Object.assign({}, rec, { __advisorEmailMissing: initEmail }));
+                    }
+                }
+            }
+            if (advisorNotFoundCount > 0) console.log('[CSVUPLOAD] Advisor unresolved count (after enrichment):', advisorNotFoundCount);
+        } catch(e){ console.warn('Advisor not-found detection failed:', e.message); }
+
+    // Filter out records without any advisor info (business rule)
+    const advisorFiltered = recordsToInsert2.filter(r => (r.btpOnbAdvNome && r.btpOnbAdvNome.trim()) || (r.btpOnbAdvEmail && r.btpOnbAdvEmail.trim()));
+    const advisorDropped = recordsToInsert2.length - advisorFiltered.length;
+    if (advisorDropped > 0) console.log('Dropped', advisorDropped, 'records lacking advisor name/email');
+
+        // Perform inserts or advisor updates in smaller batches to avoid payload size limits
+        // New logic: if a record with same (customerNumber, emlaType) exists, update advisor fields only when changed
         let inserted = 0;
+        let updated = 0;
+        let updateErrors = 0;
         const insertErrors = [];
-        if (recordsToInsert2.length > 0) {
-            for (let i = 0; i < recordsToInsert2.length; i++) {
-                const rec = recordsToInsert2[i];
-                try {
-                    await cds.run(INSERT.into('EMLACustomers').entries([rec]));
-                    inserted++;
-                } catch (e) {
-                    // capture DB error message and attach the original raw row if possible
-                    const reason = e && e.message ? e.message : String(e);
-                    insertErrors.push({ index: i, reason, record: rec });
-                    // also push into errors2 and failedRawRows2 so frontend gets them
-                    errors2.push({ row: i + 1, reason });
-                    // store a simple raw object snapshot for CSV export
-                    failedRawRows2.push(Object.assign({}, rec, { __dbError: reason }));
-                    console.error(`Insert failed for record ${i}:`, reason);
-                    // continue with next record
+        const BATCH_SIZE = 10; // Process 10 records at a time
+
+        if (advisorFiltered.length > 0) {
+            // Build key set for existing lookup (customerNumber + emlaType)
+            const keyPairs = advisorFiltered
+                .filter(r => r.customerNumber && r.emlaType)
+                .map(r => ({ customerNumber: r.customerNumber, emlaType: r.emlaType }));
+            // Deduplicate
+            const keyMap = new Map();
+            for (const kp of keyPairs) {
+                const k = kp.customerNumber + '||' + kp.emlaType;
+                if (!keyMap.has(k)) keyMap.set(k, kp);
+            }
+            const uniqueKeys = Array.from(keyMap.values());
+            let existingRows = [];
+            try {
+                if (uniqueKeys.length > 0) {
+                    // Split into chunks for WHERE IN to avoid parameter limits
+                    const CHUNK_SIZE = 100;
+                    for (let i = 0; i < uniqueKeys.length; i += CHUNK_SIZE) {
+                        const chunk = uniqueKeys.slice(i, i + CHUNK_SIZE);
+                        const custNums = chunk.map(c => c.customerNumber);
+                        // Fetch by customerNumber first, then filter by emlaType in JS (safer if DB can't handle composite IN easily)
+                        const rows = await cds.run(SELECT.from('EMLACustomers').columns('ID','customerNumber','emlaType','erpOnbAdvNome','btpOnbAdvNome','btpOnbAdvEmail').where({ customerNumber: { 'in': custNums } }));
+                        if (Array.isArray(rows)) existingRows.push(...rows);
+                    }
+                }
+            } catch(e) {
+                console.warn('[CSVUPLOAD] Existing record bulk fetch failed:', e.message);
+            }
+            // Index existing by composite key
+            const existingIndex = new Map();
+            for (const row of existingRows) {
+                if (row.customerNumber && row.emlaType) {
+                    existingIndex.set(row.customerNumber + '||' + row.emlaType, row);
+                }
+            }
+
+            console.log(`[CSVUPLOAD] Advisor processing: ${advisorFiltered.length} candidate records. Existing matches found: ${existingIndex.size}`);
+
+            for (let batchStart = 0; batchStart < advisorFiltered.length; batchStart += BATCH_SIZE) {
+                const batchEnd = Math.min(batchStart + BATCH_SIZE, advisorFiltered.length);
+                const batch = advisorFiltered.slice(batchStart, batchEnd);
+
+                console.log(`Processing batch ${Math.floor(batchStart/BATCH_SIZE) + 1}: records ${batchStart + 1} to ${batchEnd}`);
+
+                // Process this batch
+                for (let i = 0; i < batch.length; i++) {
+                    const rec = batch[i];
+                    const originalIndex = batchStart + i;
+                    const compositeKey = rec.customerNumber + '||' + rec.emlaType;
+                    const existing = existingIndex.get(compositeKey);
+                    if (existing) {
+                        // Determine if advisor fields need update
+                        const newBtpName = rec.btpOnbAdvNome && rec.btpOnbAdvNome.trim();
+                        const newBtpEmail = rec.btpOnbAdvEmail && rec.btpOnbAdvEmail.trim();
+                        const newErpName = rec.erpOnbAdvNome && rec.erpOnbAdvNome.trim();
+                        const newExternalID = rec.externalID && rec.externalID.trim();
+                        const diff = (
+                            (newBtpName && newBtpName !== (existing.btpOnbAdvNome || '').trim()) ||
+                            (newBtpEmail && newBtpEmail !== (existing.btpOnbAdvEmail || '').trim()) ||
+                            (newErpName && newErpName !== (existing.erpOnbAdvNome || '').trim()) ||
+                            (newExternalID && newExternalID !== (existing.externalID || '').trim())
+                        );
+                        if (diff) {
+                            const updateObj = {};
+                            if (newBtpName && newBtpName !== (existing.btpOnbAdvNome || '').trim()) updateObj.btpOnbAdvNome = newBtpName;
+                            if (newBtpEmail && newBtpEmail !== (existing.btpOnbAdvEmail || '').trim()) updateObj.btpOnbAdvEmail = newBtpEmail;
+                            if (newErpName && newErpName !== (existing.erpOnbAdvNome || '').trim()) updateObj.erpOnbAdvNome = newErpName;
+                            if (newExternalID && newExternalID !== (existing.externalID || '').trim()) updateObj.externalID = newExternalID;
+                            try {
+                                await cds.run(UPDATE('EMLACustomers').set(updateObj).where({ ID: existing.ID }));
+                                updated++;
+                            } catch (e) {
+                                updateErrors++;
+                                let reason = e && e.message ? e.message : String(e);
+                                errors2.push({ row: rec.csvRowNumber || originalIndex + 1, reason: `Update failed: ${reason}` });
+                                failedRawRows2.push(Object.assign({}, rec, { __updateError: reason }));
+                                console.error(`Update failed for existing record ID=${existing.ID}:`, reason);
+                            }
+                        } else {
+                            // No advisor difference; skip silently
+                        }
+                    } else {
+                        // Insert new record
+                        try {
+                            await cds.run(INSERT.into('EMLACustomers').entries([rec]));
+                            inserted++;
+                        } catch (e) {
+                            // capture DB error message and attach the original raw row if possible
+                            let reason = e && e.message ? e.message : String(e);
+                            if (reason.includes('value too long') || reason.includes('string exceeds maximum length')) {
+                                reason = `Field value too long. Consider shortening text content. Original error: ${reason}`;
+                            } else if (reason.includes('invalid character') || reason.includes('encoding')) {
+                                reason = `Invalid characters detected in text field. Original error: ${reason}`;
+                            } else if (reason.includes('constraint') && reason.includes('unique')) {
+                                reason = `Duplicate record detected (same customer already exists). Original error: ${reason}`;
+                            }
+                            dbErrorCount++;
+                            insertErrors.push({ index: originalIndex, reason, record: rec });
+                            errors2.push({ row: originalIndex + 1, reason });
+                            failedRawRows2.push(Object.assign({}, rec, { __dbError: reason }));
+                            console.error(`Insert failed for record ${originalIndex}:`, reason);
+                        }
+                    }
+                }
+                // Small delay between batches to prevent overwhelming the database
+                if (batchEnd < advisorFiltered.length) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
                 }
             }
         }
@@ -568,7 +927,20 @@ module.exports = async function(request) {
             failedRowsCsv = allKeys.join(',') + '\n' + failedRawRows2.map(r => allKeys.map(k => '"' + ((r[k] || '') + '').replace(/"/g, '""') + '"').join(',')).join('\n');
         }
 
-        return { inserted: inserted, errors: errors2, failedRowsCsv: failedRowsCsv, message: `Processed ${data.length - 1} rows: inserted ${inserted}, errors ${errors2.length}` };
+        return { 
+            inserted: inserted, 
+            updated: updated,
+            updateErrors: updateErrors,
+            errors: errors2, 
+            failedRowsCsv: failedRowsCsv, 
+            skippedNoAdvisor, 
+            totalRows: data.length, 
+            validationErrors: validationErrorCount,
+            dbErrors: dbErrorCount,
+            recoveredAdvisorCount,
+            advisorNotFoundCount,
+            message: `Processed ${data.length} data rows: inserted ${inserted}, updated ${updated}, updateErrors ${updateErrors}, validationErrors ${validationErrorCount}, dbErrors ${dbErrorCount}, skippedNoAdvisor ${skippedNoAdvisor}, advisorUnresolved ${advisorNotFoundCount}` 
+        };
 
     } catch (error) {
         console.error('CSV upload error:', error);

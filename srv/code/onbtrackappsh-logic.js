@@ -1,12 +1,12 @@
 /**
- * @On(event = { "onbTrackApp" })
+ * @On(event = { "onbTrackAppSH" })
  * @param {cds.Request} request - User information, tenant-specific CDS model, headers and query parameters
  */
 module.exports = async function (request) {
   const cds = require("@sap/cds");
   const { ID, sessionType } = request.data;
 
-  console.log("onbTrackApp called for ID:", ID, "sessionType:", sessionType);
+  console.log("onbTrackAppSH called for ID:", ID, "sessionType:", sessionType);
 
   try {
     // 1. Buscar o customer pelo ID
@@ -16,43 +16,47 @@ module.exports = async function (request) {
       return request.error(404, `Customer with ID ${ID} not found`);
     }
 
-    // 2. Verificar se trackApp já está preenchido
-    const isTrackAppEmpty =
-      !customer.trackApp || customer.trackApp.trim() === "";
+    // 2. Verificar se trackAppSH já está preenchido
+    const isTrackAppSHEmpty =
+      !customer.trackAppSH || customer.trackAppSH.trim() === "";
 
-    if (!isTrackAppEmpty) {
+    if (!isTrackAppSHEmpty) {
       return {
         ID: ID,
-        trackApp: customer.trackApp,
+        trackAppSH: customer.trackAppSH,
         generated: false,
-        message: "trackApp already exists",
+        message: "trackAppSH already exists",
       };
     }
 
     // 3. Chamar serviço externo para gerar código
-    const generatedTrackApp = await callExternalService(customer, request, sessionType);
+    const generatedTrackAppSH = await callExternalService(customer, request, sessionType);
 
-    if (generatedTrackApp.startsWith("TRACK_")) {
+    console.log("Generated trackAppSH:", generatedTrackAppSH);
+
+    // Don't treat fallback codes as errors - they are valid UUIDs or usable codes
+    // Only treat actual errors as errors (empty or null responses)
+    if (!generatedTrackAppSH) {
       return request.error(
         500,
-        `Error generating trackApp: Problem to callExternalService`
+        `Error generating trackAppSH: No code generated`
       );
     }
 
-    // 4. Atualizar o registro com o código gerado
+    // 4. Atualizar o registro com o código gerado para SH
     await UPDATE("EMLACustomers")
-      .set({ trackApp: generatedTrackApp })
+      .set({ trackAppSH: generatedTrackAppSH })
       .where({ ID: ID });
 
     return {
       ID: ID,
-      trackApp: generatedTrackApp,
+      trackAppSH: generatedTrackAppSH,
       generated: true,
-      message: "trackApp generated and saved successfully",
+      message: "trackAppSH generated and saved successfully",
     };
   } catch (error) {
-    console.error("Error in onbTrackApp:", error);
-    return request.error(500, `Error generating trackApp: ${error.message}`);
+    console.error("Error in onbTrackAppSH:", error);
+    return request.error(500, `Error generating trackAppSH: ${error.message}`);
   }
 };
 
@@ -62,18 +66,16 @@ module.exports = async function (request) {
 async function callExternalService(customer, request, sessionType) {
   const cds = require("@sap/cds");
 
-  // Helper to format a JS Date or date-like string to YYYY-MM-DD expected by remote service
   function formatDateOnly(val) {
     if (!val) return null;
     try {
-      // If already a Date object
       let d = val instanceof Date ? val : new Date(val);
       if (isNaN(d.getTime())) return null;
       const yyyy = d.getUTCFullYear();
       const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
       const dd = String(d.getUTCDate()).padStart(2, '0');
       return `${yyyy}-${mm}-${dd}`;
-    } catch (e) { return null; }
+    } catch(e){ return null; }
   }
 
   try {
@@ -88,38 +90,41 @@ async function callExternalService(customer, request, sessionType) {
       reponsible: customer.btpOnbAdvEmail,
       emlaType: customer.emlaType,
       emlaID: customer.ID,
-      sessionType: sessionType // Use the sessionType from the request
+      sessionType: sessionType
     };
-    if (startDateFmt) payloadInput.startDate = startDateFmt; // only include if valid
-    if (assignDateFmt) payloadInput.onbAdvAssignDate = assignDateFmt; // only include if valid
+    if (startDateFmt) payloadInput.startDate = startDateFmt;
+    if (assignDateFmt) payloadInput.onbAdvAssignDate = assignDateFmt;
     const payload = { input: payloadInput };
 
-    console.log("Calling external service with payload:", payload);
+    console.log("Calling external service with payload for SH:", payload);
 
     // Fazer a chamada ao serviço OData
     let result;
     try {
       result = await destination.post("/emlaSession", payload);
-    } catch (e) {
-      // Surface remote 400 error message if present
+    } catch(e) {
       const remoteMsg = e && e.response && e.response.body && e.response.body.error && e.response.body.error.message;
       if (remoteMsg && /not a valid date/i.test(remoteMsg)) {
-        console.warn('[onbTrackApp] Remote date validation failed. Payload sent:', payload);
+        console.warn('[onbTrackAppSH] Remote date validation failed. Payload sent:', payload);
       }
-      throw e; // let outer catch handle fallback code
+      throw e;
     }
+
+    console.log("External service response for SH:", JSON.stringify(result, null, 2));
 
     // Extrair o código gerado da resposta
     if (result && result.value) {
-      console.log(result.value);
+      console.log("SH result:", result.value);
       return result.value;
     } else {
+      console.log("Invalid response format from external service for SH:", result);
       throw new Error("Invalid response format from external service");
     }
   } catch (error) {
-    console.error("External service call failed:", error && error.message, 'payload may have invalid dates');
-    const fallbackCode = `TRACK_${customer.customerNumber}_${Date.now()}`;
-    console.log(`Using fallback code: ${fallbackCode}`);
-    return fallbackCode;
+    console.error("External service call failed for SH:", error);
+    console.error("Error details:", JSON.stringify(error, null, 2));
+    
+    // The external service should provide the session code - do not generate fallback
+    throw new Error(`External service failed for SH: ${error.message}`);
   }
 }
