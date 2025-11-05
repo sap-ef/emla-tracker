@@ -112,6 +112,11 @@ annotate service.EMLACustomers with @(
             Action: 'EMLATrackerService.setCompleted',
             Label : 'Set as Completed',
         },
+        {
+            $Type : 'UI.DataFieldForAction',
+            Action: 'EMLATrackerService.sessionSync',
+            Label : 'Session Sync',
+        },
     ],
     UI.SelectionFields           : [
         emlaType,btpOnbAdvEmail,

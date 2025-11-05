@@ -10,6 +10,7 @@ const emlacustomers_Logic = require('./code/emlacustomers-logic');
 const csvUpload_Logic = require('./code/csv-upload-logic');
 const syncEmla_Logic = require('./code/sync-emla-logic');
 const sessionStatus_Logic = require('./code/session-status-logic');
+const sessionSync_Logic = require('./code/session-sync-logic');
 
 class EMLATrackerService extends LCAPApplicationService {
     async init() {
@@ -33,6 +34,10 @@ class EMLATrackerService extends LCAPApplicationService {
 
         this.on('setCompleted', 'EMLACustomers', async (request) => {
             return emlacustomers_Logic(request);
+        });
+
+        this.on('sessionSync', 'EMLACustomers', async (request) => {
+            return sessionSync_Logic.sessionSync(request);
         });
 
         this.on('syncEMLAData', async (request) => {

@@ -14,6 +14,17 @@ service EMLATrackerService {
                 TargetEntities  : ['EMLACustomers']
             }
             action setCompleted() returns Boolean;
+            
+            @Common.SideEffects       : {
+                TargetProperties: [
+                    'isTrackAppCompleted',
+                    'isTrackAppTP2Completed',
+                    'isTrackAppSHCompleted',
+                    'completedOn'
+                ],
+                TargetEntities  : ['EMLACustomers']
+            }
+            action sessionSync() returns String;
         };
 
     entity OnboardAdvisors  as projection on db.OnboardAdvisors;
