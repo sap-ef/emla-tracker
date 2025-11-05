@@ -19,7 +19,7 @@ sap.ui.define([], function () {
     console.log("DEBUG: icon() called with trackApp:", trackApp, "completed:", completed, "emlaType:", emlaType, "sessionType:", sessionType);
     
     // First check emlaType to see if this session type should be visible
-    if (emlaType === "Private Cloud ERP") {
+    if (emlaType === "Cloud ERP Private") {
       console.log("DEBUG: Private Cloud ERP - no icons");
       return "";
     }

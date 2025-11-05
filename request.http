@@ -74,6 +74,29 @@ If-Match: *
   "trackAppTP2": "MANUAL-TP2-DEF456"
 }
 
+
+###
+POST http://localhost:4004/service/EMLATrackerService/EMLACustomers
+Authorization: Basic user:passwd
+Content-Type: application/json
+
+    {
+      "emlaType" : "Cloud ERP Private",
+      "trackApp" : null,
+      "customerName" : "IRB Brasil Resseguros S/A",
+      "completedOn" : null,
+      "ID" : "94069e0b-82ed-469d-810f-7e2af2414dd6",
+      "erpOnbAdvNome" : "daniela.gatelli@sap.com",
+      "isTrackAppCompleted" : false,
+      "isTrackAppSHCompleted" : false,
+      "trackAppTP2" : null,
+      "customerNumber" : "4945381",
+      "btpOnbAdvEmail" : "eduardo.fagundes@sap.com",
+      "isTrackAppTP2Completed" : false,
+      "startDate" : "2025-08-01",
+      "trackAppSH" : null
+    }
+
 ###
 POST http://localhost:4004/service/EMLATrackerService/EMLACustomers
 Authorization: Basic user:passwd
@@ -84,10 +107,10 @@ Content-Type: application/json
       "createdBy": "privileged",
       "modifiedAt": "2025-11-03T21:06:08.558Z",
       "modifiedBy": "privileged",
-      "ID": "013e35ce-308b-402e-a5a0-a1be7541d154",
+      "ID": "013e35ce-308b-402e-a5a0-a1be7541d123",
       "externalID": "261",
       "customerName": "IONOS SE",
-      "customerNumber": "1105676",
+      "customerNumber": "1105636",
       "emlaType": "Integration Suite",
       "region": "CS MEE",
       "country": "Germany",
