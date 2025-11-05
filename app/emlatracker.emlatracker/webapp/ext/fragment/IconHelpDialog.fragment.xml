@@ -1,0 +1,43 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
+	<Dialog id="iconHelpDialog" title="Session Status Icons Guide" class="sapUiContentPadding" 
+			draggable="true" resizable="true" afterClose="onAfterCloseIconHelpDialog">
+		<content>
+			<VBox id="helpContentVBox" class="sapUiMediumMarginBegin sapUiMediumMarginEnd">
+				<Text id="helpIntroText" class="sapUiMediumMarginBottom" text="This guide explains the meaning of each session status icon in the EMLA Tracker:"/>
+				
+				<!-- Status Completed Icon -->
+				<HBox id="completedIconBox" alignItems="Center" class="sapUiSmallMarginBottom">
+					<core:Icon id="completedIcon" src="sap-icon://status-completed" class="emlaIconGreen sapUiSmallMarginEnd" width="1.5rem" decorative="false" alt="Status completed icon"/>
+					<VBox id="completedDescBox">
+						<Text id="completedTitle" text="Session Completed" class="sapUiMediumText"/>
+						<Text id="completedDesc" text="The session has been successfully completed" class="sapUiSmallText"/>
+					</VBox>
+				</HBox>
+				
+				<!-- Document Text Icon -->
+				<HBox id="progressIconBox" alignItems="Center" class="sapUiSmallMarginBottom">
+					<core:Icon id="progressIcon" src="sap-icon://document-text" class="sapUiSmallMarginEnd" width="1.5rem" decorative="false" alt="Document text icon"/>
+					<VBox id="progressDescBox">
+						<Text id="progressTitle" text="Session In Progress" class="sapUiMediumText"/>
+						<Text id="progressDesc" text="The session has been created and is currently in progress" class="sapUiSmallText"/>
+					</VBox>
+				</HBox>
+				
+				<!-- Create Icon -->
+				<HBox id="createIconBox" alignItems="Center" class="sapUiSmallMarginBottom">
+					<core:Icon id="createIcon" src="sap-icon://create" class="sapUiSmallMarginEnd" width="1.5rem" decorative="false" alt="Create icon"/>
+					<VBox id="createDescBox">
+						<Text id="createTitle" text="Session Available for Creation" class="sapUiMediumText"/>
+						<Text id="createDesc" text="The session will be created when you access the 1:1 App" class="sapUiSmallText"/>
+					</VBox>
+				</HBox>
+				
+				<MessageStrip id="helpNote" text="Note: Icons only appear for applicable session types based on your EMLA Type (Private Cloud ERP shows no icons, Public Cloud ERP shows only TP1, Integration Suite shows all three)" 
+					type="Information" class="sapUiMediumMarginTop"/>
+			</VBox>
+		</content>
+		<buttons>
+			<Button id="closeHelpButton" text="Close" press="onCloseIconHelpDialog" type="Emphasized"/>
+		</buttons>
+	</Dialog>
+</core:FragmentDefinition>

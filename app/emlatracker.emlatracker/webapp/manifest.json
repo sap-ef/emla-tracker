@@ -130,7 +130,9 @@
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
                     "type": "ResponsiveTable",
-                    "enableExport": true
+                    "enableExport": true,
+                    "enablePaste": false,
+                    "enableFullScreen": true
                   },
                   "columns": {
                     "OpenApp": {
@@ -141,6 +143,24 @@
                         "placement": "Before"
                       },
                       "template": "emlatracker.emlatracker.ext.fragment.OpenApp"
+                    }
+                  },
+                  "actions": {
+                    "IconHelp": {
+                      "press": "emlatracker.emlatracker.ext.controller.IconHelpController.onOpenIconHelpDialog",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "Session Icons Help",
+                      "icon": "sap-icon://sys-help"
+                    },
+                    "DataFieldForAction::Delete": {
+                      "visible": false
+                    },
+                    "StandardAction::Delete": {
+                      "visible": false
+                    },
+                    "Delete": {
+                      "visible": false
                     }
                   }
                 }

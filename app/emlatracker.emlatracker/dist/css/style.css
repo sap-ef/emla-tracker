@@ -4,24 +4,10 @@
     display: none !important;
 }
 
-/* Icon coloring for completed track apps */
-.emlaIconGreen {
-    color: #2b7d2b !important; /* SAP positive green */
-}
-
-/* Right margin to separate icon from following text - using higher specificity */
-.emlaIconPad,
-.sapUiIcon.emlaIconPad,
-#iconTP1.emlaIconPad,
-#iconTP2.emlaIconPad, 
-#iconSH.emlaIconPad {
-    margin-right: 0.5rem !important; /* increased space after icon */
-    width: 1rem !important; /* fixed width for consistent alignment */
+/* Minimal spacing for icons - reduced to 0.125rem for very tight spacing */
+.emlaIconPad {
+    /* margin-right: 0.125rem !important; very minimal space after icon */
+    /* width: 1rem !important; fixed width for consistent alignment */
     text-align: center !important; /* center icon within fixed width */
     display: inline-block !important; /* ensure block behavior for width */
-}
-
-/* Optional debug class to visualize when completion evaluated true */
-.emlaIconDebugTrue {
-    outline: 1px dashed #2b7d2b;
 }

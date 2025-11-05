@@ -69,6 +69,14 @@ sap.ui.define([], function () {
     return _normalizeCompleted(completed) ? "emlaIconGreen" : "";
   }
 
+  function iconColor(trackApp, completed) {
+    // Only apply semantic color if trackApp exists and is completed
+    if (!trackApp || trackApp.trim() === "") {
+      return "Default"; // No special color for create icon
+    }
+    return _normalizeCompleted(completed) ? "Positive" : "Default";
+  }
+
   return {
     iconTP1: function (trackApp, completed, emlaType) {
       return icon(trackApp, completed, emlaType, "TP1");
@@ -76,17 +84,26 @@ sap.ui.define([], function () {
     tooltipTP1: function (trackApp, completed) {
       return tooltip(trackApp, completed, "TP1");
     },
+    colorTP1: function (trackApp, completed) {
+      return iconColor(trackApp, completed);
+    },
     iconTP2: function (trackAppTP2, completedTP2, emlaType) {
       return icon(trackAppTP2, completedTP2, emlaType, "TP2");
     },
     tooltipTP2: function (trackAppTP2, completedTP2) {
       return tooltip(trackAppTP2, completedTP2, "TP2");
     },
+    colorTP2: function (trackAppTP2, completedTP2) {
+      return iconColor(trackAppTP2, completedTP2);
+    },
     iconSH: function (trackAppSH, completedSH, emlaType) {
       return icon(trackAppSH, completedSH, emlaType, "SH");
     },
     tooltipSH: function (trackAppSH, completedSH) {
       return tooltip(trackAppSH, completedSH, "SH");
+    },
+    colorSH: function (trackAppSH, completedSH) {
+      return iconColor(trackAppSH, completedSH);
     },
     greenClass: greenClass
   };

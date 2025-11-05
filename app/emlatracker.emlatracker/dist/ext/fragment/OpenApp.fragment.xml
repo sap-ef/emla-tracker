@@ -6,7 +6,8 @@
 				<!-- Icon for TP1 / Workflow App availability -->
 				<core:Icon id="iconTP1" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
 					src="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'emlaType'}], formatter:'formatter.iconTP1'}"
-					class="emlaIconPad {parts:[{path:'isTrackAppCompleted'}], formatter:'formatter.greenClass'} {= ${isTrackAppCompleted} ? 'emlaIconDebugTrue' : '' }"
+					color="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'}], formatter:'formatter.colorTP1'}"
+					class="emlaIconPad"
 					tooltip="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'}], formatter:'formatter.tooltipTP1'}"/>
 				<Link id="button1"
 					  text="{= ${emlaType} === 'Public Cloud ERP' ? 'TP1' : ${emlaType} === 'Integration Suite' ? 'TP1' : 'Workflow App'}"
@@ -27,7 +28,8 @@
 			<HBox id="hboxButton2">
 				<core:Icon id="iconTP2" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
 					src="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'emlaType'}], formatter:'formatter.iconTP2'}"
-					class="emlaIconPad {parts:[{path:'isTrackAppTP2Completed'}], formatter:'formatter.greenClass'} {= ${isTrackAppTP2Completed} ? 'emlaIconDebugTrue' : '' }"
+					color="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'}], formatter:'formatter.colorTP2'}"
+					class="emlaIconPad"
 					tooltip="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'}], formatter:'formatter.tooltipTP2'}"/>
 				<Link id="button2"
 					  text="{= ${emlaType} === 'Integration Suite' ? 'TP2' : ''}"
@@ -48,7 +50,8 @@
 			<HBox id="hboxButton3">
 				<core:Icon id="iconSH" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
 					src="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'},{path:'emlaType'}], formatter:'formatter.iconSH'}"
-					class="emlaIconPad {parts:[{path:'isTrackAppSHCompleted'}], formatter:'formatter.greenClass'} {= ${isTrackAppSHCompleted} ? 'emlaIconDebugTrue' : '' }"
+					color="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'}], formatter:'formatter.colorSH'}"
+					class="emlaIconPad"
 					tooltip="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'}], formatter:'formatter.tooltipSH'}"/>
 				<Link id="button3"
 					  text="{= ${emlaType} === 'Integration Suite' ? 'SH' : ''}"
