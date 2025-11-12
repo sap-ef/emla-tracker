@@ -645,9 +645,10 @@ module.exports = async function(request) {
             // r is zero-based index into data (header present), so CSV row number is r+2
             const csvRowNumber = r + (parsed.meta && parsed.meta.fields ? 2 : 1);
 
-            // If PubCloudERP import must include BTP Onboarding Advisor, skip rows lacking it
+            // Removed restriction: Allow import even without BTP Onboarding Advisor
+            // Still attempt to extract advisor info from alternative columns if available
             if (mappingType === 'PubCloudERP' && (!mappedRecord.btpOnbAdvNome || (mappedRecord.btpOnbAdvNome + '').trim() === '')) {
-                // Attempt fallback extraction from alternative columns before skipping
+                // Attempt fallback extraction from alternative columns
                 try {
                     const fallbackCandidate = (rowObj['BTP Onboarding Advisor'] || rowObj['BTP ONB Advisor'] || rowObj['EmLA Staffing for BTP'] || rowObj['EmLA Staffing for SAP Cloud ERP'] || '').toString().trim();
                     if (fallbackCandidate && isMeaningfulCandidate(fallbackCandidate)) {
@@ -656,10 +657,9 @@ module.exports = async function(request) {
                         console.log('[CSVUPLOAD] Recovered advisor via fallback for row', csvRowNumber, 'advisor=', fallbackCandidate);
                     }
                 } catch (e) { /* ignore */ }
+                // No longer skip rows without advisor - continue processing
                 if (!mappedRecord.btpOnbAdvNome || !(mappedRecord.btpOnbAdvNome+'').trim()) {
-                    skippedNoAdvisor++;
-                    console.log('[CSVUPLOAD] Skipping row (no advisor, PubCloudERP): csvRow', csvRowNumber, 'customerName=', mappedRecord.customerName, 'customerNumber=', mappedRecord.customerNumber, 'rawAdvisorFields={BTP Onboarding Advisor:', rowObj['BTP Onboarding Advisor'], ', EmLA Staffing for BTP:', rowObj['EmLA Staffing for BTP'],'}');
-                    continue;
+                    console.log('[CSVUPLOAD] Continuing import without advisor for row', csvRowNumber, 'customerName=', mappedRecord.customerName, 'customerNumber=', mappedRecord.customerNumber);
                 }
             }
 
@@ -797,10 +797,11 @@ module.exports = async function(request) {
             if (advisorNotFoundCount > 0) console.log('[CSVUPLOAD] Advisor unresolved count (after enrichment):', advisorNotFoundCount);
         } catch(e){ console.warn('Advisor not-found detection failed:', e.message); }
 
-    // Filter out records without any advisor info (business rule)
-    const advisorFiltered = recordsToInsert2.filter(r => (r.btpOnbAdvNome && r.btpOnbAdvNome.trim()) || (r.btpOnbAdvEmail && r.btpOnbAdvEmail.trim()));
-    const advisorDropped = recordsToInsert2.length - advisorFiltered.length;
-    if (advisorDropped > 0) console.log('Dropped', advisorDropped, 'records lacking advisor name/email');
+    // Removed restriction: Allow records without advisor info to be imported
+    // Keep all records regardless of advisor assignment
+    const advisorFiltered = recordsToInsert2; // No longer filter out records without advisors
+    const advisorDropped = 0; // No records dropped
+    console.log('[CSVUPLOAD] Allowing import of all records, including those without advisor assignment');
 
         // Perform inserts or advisor updates in smaller batches to avoid payload size limits
         // New logic: if a record with same (customerNumber, emlaType) exists, update advisor fields only when changed
