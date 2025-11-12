@@ -1,2 +1,0 @@
-sap.ui.define(["sap/fe/test/JourneyRunner","emlatracker/csvupload/test/integration/pages/EMLACustomersMain"],function(e,a){"use strict";var t=new e({launchUrl:sap.ui.require.toUrl("emlatracker/csvupload")+"/test/flpSandbox.html#emlatrackercsvupload-tile",pages:{onTheEMLACustomersMain:a},async:true});return t});
-//# sourceMappingURL=JourneyRunner.js.map

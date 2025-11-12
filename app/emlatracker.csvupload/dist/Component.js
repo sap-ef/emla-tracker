@@ -1,2 +1,0 @@
-sap.ui.define(["sap/ui/core/UIComponent","sap/m/App"],function(t,e){"use strict";return t.extend("emlatracker.csvupload.Component",{metadata:{manifest:"json"},init:function(){t.prototype.init.apply(this,arguments);var e=this.getModel();if(e){this.setModel(e)}this.getRouter().initialize()},createContent:function(){return new e({id:"app"})}})});
-//# sourceMappingURL=Component.js.map

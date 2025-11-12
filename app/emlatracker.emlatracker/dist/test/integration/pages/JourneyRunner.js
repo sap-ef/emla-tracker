@@ -1,2 +1,0 @@
-sap.ui.define(["sap/fe/test/JourneyRunner","emlatracker/emlatracker/test/integration/pages/EMLACustomersList","emlatracker/emlatracker/test/integration/pages/EMLACustomersObjectPage"],function(e,t,r){"use strict";var a=new e({launchUrl:sap.ui.require.toUrl("emlatracker/emlatracker")+"/test/flpSandbox.html#emlatrackeremlatracker-tile",pages:{onTheEMLACustomersList:t,onTheEMLACustomersObjectPage:r},async:true});return a});
-//# sourceMappingURL=JourneyRunner.js.map

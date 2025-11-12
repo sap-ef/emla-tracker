@@ -1,2 +1,0 @@
-sap.ui.define(["sap/fe/test/ObjectPage"],function(e){"use strict";var t={actions:{},assertions:{}};return new e({appId:"emlatracker.emlatracker",componentId:"EMLACustomersObjectPage",contextPath:"/EMLACustomers"},t)});
-//# sourceMappingURL=EMLACustomersObjectPage.js.map

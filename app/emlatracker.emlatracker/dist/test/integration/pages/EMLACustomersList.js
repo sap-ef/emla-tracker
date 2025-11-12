@@ -1,2 +1,0 @@
-sap.ui.define(["sap/fe/test/ListReport"],function(t){"use strict";var e={actions:{},assertions:{}};return new t({appId:"emlatracker.emlatracker",componentId:"EMLACustomersList",contextPath:"/EMLACustomers"},e)});
-//# sourceMappingURL=EMLACustomersList.js.map
