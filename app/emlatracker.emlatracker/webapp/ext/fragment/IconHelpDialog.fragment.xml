@@ -23,6 +23,15 @@
 					</VBox>
 				</HBox>
 				
+				<!-- Decline Icon -->
+				<HBox id="rejectedIconBox" alignItems="Center" class="sapUiSmallMarginBottom">
+					<core:Icon id="rejectedIcon" src="sap-icon://decline" class="emlaIconRed sapUiSmallMarginEnd" width="1.5rem" decorative="false" alt="Session rejected icon"/>
+					<VBox id="rejectedDescBox">
+						<Text id="rejectedTitle" text="Session Rejected" class="sapUiMediumText"/>
+						<Text id="rejectedDesc" text="The session has been rejected and cannot proceed" class="sapUiSmallText"/>
+					</VBox>
+				</HBox>
+				
 				<!-- Create Icon -->
 				<HBox id="createIconBox" alignItems="Center" class="sapUiSmallMarginBottom">
 					<core:Icon id="createIcon" src="sap-icon://create" class="sapUiSmallMarginEnd" width="1.5rem" decorative="false" alt="Create icon"/>

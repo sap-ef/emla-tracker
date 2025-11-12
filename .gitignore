@@ -44,3 +44,6 @@ default-env.json
 
 app/emlatracker.csvupload/dist-zip/emlatrackercsvupload.zip
 app/emlatracker.emlatracker/dist-zip/emlatrackeremlatracker.zip
+
+app/emlatracker.emlatracker/dist/
+app/emlatracker.csvupload/dist/

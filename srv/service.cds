@@ -20,6 +20,9 @@ service EMLATrackerService {
                     'isTrackAppCompleted',
                     'isTrackAppTP2Completed',
                     'isTrackAppSHCompleted',
+                    'isTrackAppRejected',
+                    'isTrackAppTP2Rejected',
+                    'isTrackAppSHRejected',
                     'completedOn'
                 ],
                 TargetEntities  : ['EMLACustomers']

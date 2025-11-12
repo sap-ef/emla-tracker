@@ -54,6 +54,8 @@ async function sessionSync(req) {
           sessionId: record.trackApp,
           type: "TP1",
           field: "isTrackAppCompleted",
+          rejectionField: "isTrackAppRejected",
+          statusField: "trackAppStatus",
         });
         logger.debug(
           `  - TP1 session ${record.trackApp} needs checking (current status: ${record.isTrackAppCompleted})`
@@ -69,6 +71,8 @@ async function sessionSync(req) {
           sessionId: record.trackAppTP2,
           type: "TP2",
           field: "isTrackAppTP2Completed",
+          rejectionField: "isTrackAppTP2Rejected",
+          statusField: "trackAppTP2Status",
         });
         logger.debug(
           `  - TP2 session ${record.trackAppTP2} needs checking (current status: ${record.isTrackAppTP2Completed})`
@@ -84,6 +88,8 @@ async function sessionSync(req) {
           sessionId: record.trackAppSH,
           type: "SH",
           field: "isTrackAppSHCompleted",
+          rejectionField: "isTrackAppSHRejected",
+          statusField: "trackAppSHStatus",
         });
         logger.debug(
           `  - SH session ${record.trackAppSH} needs checking (current status: ${record.isTrackAppSHCompleted})`
@@ -106,16 +112,32 @@ async function sessionSync(req) {
           logger.debug(`Calling webservice for session ${check.sessionId}...`);
           const sessionData = await checkSessionStatus(check.sessionId, logger);
 
-          if (sessionData && sessionData.completed) {
-            // Update the completion flag - use Boolean true since schema defines as Boolean
+          if (sessionData) {
+            // Always update status and reset flags for fresh state
             const updateData = {};
-            updateData[check.field] = true; // Set Boolean true for completion
             
-            logger.info(`📅 Session ${check.sessionId} completed - updating ${check.field} to true`);
-
-            // Also update completedOn date if provided
-            if (sessionData.completedDate) {
-              updateData.completedOn = sessionData.completedDate;
+            // Store the raw status value
+            updateData[check.statusField] = sessionData.status || sessionData.rawStatus || 'Unknown';
+            logger.info(`📝 Session ${check.sessionId} status - updating ${check.statusField} to '${updateData[check.statusField]}'`);
+            
+            // ALWAYS reset completion and rejection flags first
+            updateData[check.field] = false; // Reset completion flag
+            updateData[check.rejectionField] = false; // Reset rejection flag
+            
+            // Then set the appropriate flags based on current status
+            if (sessionData.completed) {
+              updateData[check.field] = true; // Set Boolean true for completion
+              logger.info(`📅 Session ${check.sessionId} completed - updating ${check.field} to true`);
+              
+              // Also update completedOn date if provided
+              if (sessionData.completedDate) {
+                updateData.completedOn = sessionData.completedDate;
+              }
+            }
+            
+            if (sessionData.rejected) {
+              updateData[check.rejectionField] = true;
+              logger.info(`❌ Session ${check.sessionId} rejected - updating ${check.rejectionField} to true`);
             }
 
             logger.debug(`🔄 Updating database for record ID: ${record.ID}`);
@@ -128,17 +150,27 @@ async function sessionSync(req) {
             logger.debug(`🔄 Update result:`, updateResult);
             totalUpdated++; // Increment the counter when database is updated
             
-            logger.info(
-              `✅ Updated ${check.type} session ${check.sessionId} for customer ${record.customerNumber} - marked as completed`
-            );
-            if (sessionData.completedDate) {
-              logger.debug(
-                `   - Completed date set to: ${sessionData.completedDate}`
+            if (sessionData.completed) {
+              logger.info(
+                `✅ Updated ${check.type} session ${check.sessionId} for customer ${record.customerNumber} - marked as completed`
+              );
+              if (sessionData.completedDate) {
+                logger.debug(
+                  `   - Completed date set to: ${sessionData.completedDate}`
+                );
+              }
+            } else if (sessionData.rejected) {
+              logger.info(
+                `❌ Updated ${check.type} session ${check.sessionId} for customer ${record.customerNumber} - marked as rejected`
+              );
+            } else {
+              logger.info(
+                `📝 Updated ${check.type} session ${check.sessionId} for customer ${record.customerNumber} - status updated to '${updateData[check.statusField]}', flags reset`
               );
             }
           } else {
             logger.debug(
-              `⏳ ${check.type} session ${check.sessionId} still in progress or not completed`
+              `⏳ ${check.type} session ${check.sessionId} still in progress`
             );
           }
         } catch (error) {
@@ -150,7 +182,7 @@ async function sessionSync(req) {
       }
     }
 
-    const result = `Session sync completed for selected records. Checked ${totalChecked} sessions, updated ${totalUpdated} to completed status.`;
+    const result = `Session sync completed. Checked ${totalChecked} sessions, updated ${totalUpdated} records.`;
     logger.info(result);
     return result;
   } catch (error) {
@@ -230,27 +262,64 @@ async function checkSessionStatus(sessionId, logger) {
     if (response.status === 200) {
       const data = response.data;
       
-      // Check if sessionDate exists and is >= today
+      // Log the exact status value we received
+      logger.info(`🔍 Raw sessionStatus_name received: "${data.sessionStatus_name}"`);
+      
+      // Check if this is a rejected session first - be more flexible with rejection detection
+      const isRejected = data.sessionStatus_name && 
+        (data.sessionStatus_name.toLowerCase().includes("reject") ||
+         data.sessionStatus_name.toLowerCase().includes("cancelled") ||
+         data.sessionStatus_name.toLowerCase().includes("cancel") ||
+         data.sessionStatus_name.toLowerCase().includes("declined") ||
+         data.sessionStatus_name.toLowerCase().includes("decline") ||
+         data.sessionStatus_name.toLowerCase().includes("denied") ||
+         data.sessionStatus_name.toLowerCase().includes("deny"));
+      
+      logger.info(`🔍 Rejection check result: ${isRejected} (for status: "${data.sessionStatus_name}")`);
+      
+      // Check if sessionDate exists and is BEFORE today (only for non-rejected sessions)
+      // Sessions created today should NOT be automatically marked as completed
       let isDateCompleted = false;
-      if (data.sessionDate) {
+      if (!isRejected && data.sessionDate) {
         const sessionDate = new Date(data.sessionDate);
         const today = new Date();
         // Set time to 00:00:00 for date-only comparison
         today.setHours(0, 0, 0, 0);
         sessionDate.setHours(0, 0, 0, 0);
         
-        isDateCompleted = sessionDate <= today;
+        // Only mark as completed if session date is BEFORE today (not today or future)
+        isDateCompleted = sessionDate < today;
+        logger.info(`📅 Date analysis for session ${sessionId}:`);
+        logger.info(`   - sessionDate from API: ${data.sessionDate}`);
+        logger.info(`   - sessionDate parsed: ${sessionDate.toISOString()}`);
+        logger.info(`   - today: ${today.toISOString()}`);
+        logger.info(`   - sessionDate < today (must be BEFORE today): ${isDateCompleted}`);
         logger.debug(`📅 Session date: ${data.sessionDate}, Today: ${today.toISOString().split('T')[0]}, Date completed: ${isDateCompleted}`);
+      } else {
+        logger.info(`📅 Date check skipped for session ${sessionId}:`);
+        logger.info(`   - isRejected: ${isRejected}`);
+        logger.info(`   - has sessionDate: ${!!data.sessionDate}`);
       }
       
       const result = {
         completed:
-          data.sessionStatus_name === "completed" || isDateCompleted,
+          !isRejected && (data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed") || isDateCompleted),
+        rejected: isRejected,
+        status: data.sessionStatus_name || 'Unknown',
         completedDate: data.completedDate ? new Date(data.completedDate) : null,
         progress: data.progress || 0,
       };
       
-      logger.debug(`📋 Final result for ${sessionId}:`, JSON.stringify(result, null, 2));
+      logger.info(`🔍 Session ${sessionId} completion analysis:`);
+      logger.info(`   - sessionStatus_name: "${data.sessionStatus_name}"`);
+      logger.info(`   - sessionStatus_name.toLowerCase().includes("completed"): ${data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed")}`);
+      logger.info(`   - isRejected: ${isRejected}`);
+      logger.info(`   - isDateCompleted (date < today): ${isDateCompleted}`);
+      logger.info(`   - completion formula: !isRejected && (status.includes("completed") || dateBeforeToday)`);
+      logger.info(`   - completion formula: !${isRejected} && (${data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed")} || ${isDateCompleted})`);
+      logger.info(`   - final completed flag: ${result.completed}`);
+      logger.info(`   - final rejected flag: ${result.rejected}`);
+      logger.debug(`📊 Final result for ${sessionId}:`, JSON.stringify(result, null, 2));
       return result;
     } else {
       logger.warn(
@@ -282,9 +351,12 @@ async function checkSessionStatus(sessionId, logger) {
       logger.info(
         `💡 To use real webservice, configure BTP destination '${destination}' with base URL`
       );
+      // For new sessions, always return in-progress, never completed
       return {
-        completed: Math.random() > 0.5, // Random completion for testing
-        completedDate: new Date(),
+        completed: false,
+        rejected: false,
+        status: 'in progress',
+        completedDate: null,
         progress: Math.floor(Math.random() * 100),
       };
     }
