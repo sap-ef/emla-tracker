@@ -7,9 +7,15 @@ sap.ui.define(
       onPressEMLA: function (oEvent) {
         const emla_url =
           "https://emla-prod.launchpad.cfapps.us10.hana.ondemand.com/site/prod#CustomerData-manage?sap-ui-app-id-hint=saas_approuter_com.sap.rise.managecustomerdata&/CustomerMaster(ID=#ID#,IsActiveEntity=true)";
-        // const trackApp_url = "https://movetosap-dev2.launchpad.cfapps.br10.hana.ondemand.com/site?siteId=fe90bf68-d6c5-48ef-8c11-9fc6924d1e6e#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)";
-        const trackApp_url =
-          "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
+        var trackApp_url =
+          "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb?sap-ui-version=1.141.3&sap-iframe-params=sap-ui-version#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
+          // "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
+
+        if (window.location.hostname.includes("movetosap-dev2")) {
+          console.log("movetosap-dev2 found in hostname");
+          trackApp_url =
+            "https://movetosap-dev2.launchpad.cfapps.br10.hana.ondemand.com/site?sap-ui-version=1.141.3&sap-iframe-params=sap-ui-version&siteId=fe90bf68-d6c5-48ef-8c11-9fc6924d1e6e#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)";
+        }
 
         // 1. Get the context from the button
         var oButton = oEvent.getSource();
@@ -53,17 +59,30 @@ sap.ui.define(
               var originalType = sEmlaType;
               if (sEmlaType) {
                 const norm = sEmlaType.toLowerCase();
-                if (norm.includes('private') && norm.includes('cloud') && norm.includes('erp')) {
+                if (
+                  norm.includes("private") &&
+                  norm.includes("cloud") &&
+                  norm.includes("erp")
+                ) {
                   // Accept permutations like 'Cloud ERP Private'
-                  sEmlaType = 'Private Cloud ERP';
-                } else if (norm.includes('public') && norm.includes('cloud') && norm.includes('erp')) {
-                  sEmlaType = 'Public Cloud ERP';
-                } else if (norm.includes('integration') && norm.includes('suite')) {
-                  sEmlaType = 'Integration Suite';
+                  sEmlaType = "Private Cloud ERP";
+                } else if (
+                  norm.includes("public") &&
+                  norm.includes("cloud") &&
+                  norm.includes("erp")
+                ) {
+                  sEmlaType = "Public Cloud ERP";
+                } else if (
+                  norm.includes("integration") &&
+                  norm.includes("suite")
+                ) {
+                  sEmlaType = "Integration Suite";
                 }
               }
               if (originalType !== sEmlaType) {
-                console.log(`Normalized emlaType '${originalType}' -> '${sEmlaType}'`);
+                console.log(
+                  `Normalized emlaType '${originalType}' -> '${sEmlaType}'`
+                );
               }
               var sButtonPressed = sAction;
 
@@ -98,13 +117,21 @@ sap.ui.define(
         // Defensive normalization here as well (in case earlier normalization not applied in some build/cached version)
         if (sEmlaType) {
           const norm = sEmlaType.toLowerCase();
-            if (norm.includes('private') && norm.includes('cloud') && norm.includes('erp')) {
-              sEmlaType = 'Private Cloud ERP';
-            } else if (norm.includes('public') && norm.includes('cloud') && norm.includes('erp')) {
-              sEmlaType = 'Public Cloud ERP';
-            } else if (norm.includes('integration') && norm.includes('suite')) {
-              sEmlaType = 'Integration Suite';
-            }
+          if (
+            norm.includes("private") &&
+            norm.includes("cloud") &&
+            norm.includes("erp")
+          ) {
+            sEmlaType = "Private Cloud ERP";
+          } else if (
+            norm.includes("public") &&
+            norm.includes("cloud") &&
+            norm.includes("erp")
+          ) {
+            sEmlaType = "Public Cloud ERP";
+          } else if (norm.includes("integration") && norm.includes("suite")) {
+            sEmlaType = "Integration Suite";
+          }
         }
         // Create a unique action key combining emlaType and button
         var sActionKey = sEmlaType + "_" + sButtonPressed;
@@ -175,7 +202,9 @@ sap.ui.define(
 
           case "Private Cloud ERP_button1": // Workflow App
             if (!oCompleteData.externalID) {
-              MessageBox.warning("External ID ausente para Workflow App. Atualize o registro antes de abrir.");
+              MessageBox.warning(
+                "External ID ausente para Workflow App. Atualize o registro antes de abrir."
+              );
               return;
             }
             MessageToast.show("Opening Workflow App for Private Cloud ERP");
@@ -185,11 +214,16 @@ sap.ui.define(
           case "Cloud ERP Private_button1": // Fallback variant if somehow normalization missed
             console.log("[Fallback] Handling 'Cloud ERP Private' variant");
             if (!oCompleteData.externalID) {
-              MessageBox.warning("External ID ausente para Workflow App (variant). Atualize o registro antes de abrir.");
+              MessageBox.warning(
+                "External ID ausente para Workflow App (variant). Atualize o registro antes de abrir."
+              );
               return;
             }
             MessageToast.show("Opening Workflow App (variant)");
-            var urlFallback = emla_url.replace("#ID#", oCompleteData.externalID);
+            var urlFallback = emla_url.replace(
+              "#ID#",
+              oCompleteData.externalID
+            );
             window.open(urlFallback, "_blank");
             break;
 

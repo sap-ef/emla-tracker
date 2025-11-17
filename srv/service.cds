@@ -28,9 +28,12 @@ service EMLATrackerService {
                 TargetEntities  : ['EMLACustomers']
             }
             action sessionSync() returns String;
+            
+            
         };
 
     entity OnboardAdvisors  as projection on db.OnboardAdvisors;
+    entity AnalyzeEngagementProgress as projection on db.AnalyzeEngagementProgress;
 
     action onbTrackApp(ID: UUID, sessionType: String)    returns String;
     action onbTrackAppTP2(ID: UUID, sessionType: String) returns String;
@@ -48,6 +51,9 @@ service EMLATrackerService {
 
     entity EMLATypeVH       as projection on db.EMLATypeVH;
     entity BTPOnbAdvEmailVH as projection on db.BTPOnbAdvEmailVH;
+
+    // Analyze engagement progress - not bound to EMLACustomers
+    action importAnalyzeEngagementProgress(internalInDays: Integer) returns String;
 }
 
 annotate EMLATrackerService with @requires: ['authenticated-user'];

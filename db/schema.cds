@@ -58,3 +58,13 @@ entity OnboardAdvisors {
       email      : String;
 
 }
+
+entity AnalyzeEngagementProgress {
+  key ID                          : UUID;
+      btpOnboardingAdvisor_userId : String;
+      status                      : String;
+      detailedStatusName          : String;
+      engagementTaskName          : String;
+      customerId                  : String;
+      date                        : Date;
+}
