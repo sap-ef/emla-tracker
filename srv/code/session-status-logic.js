@@ -311,9 +311,12 @@ async function checkSessionStatus(sessionId, logger) {
         logger.info(`   - has sessionDate: ${!!data.sessionDate}`);
       }
       
+      const statusIncludesCompleted = data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed");
+      const completedByStatusAndDate = !isRejected && statusIncludesCompleted && isDateCompleted;
+
       const result = {
-        completed:
-          !isRejected && (data.sessionStatus_name === "completed" || isDateCompleted),
+        // require BOTH: status contains 'completed' AND sessionDate is before today (unless rejected)
+        completed: completedByStatusAndDate,
         rejected: isRejected,
         status: data.sessionStatus_name || 'Unknown',
         completedDate: data.completedDate ? new Date(data.completedDate) : null,
@@ -322,11 +325,10 @@ async function checkSessionStatus(sessionId, logger) {
 
       logger.info(`🔍 Session ${sessionId} completion analysis:`);
       logger.info(`   - sessionStatus_name: "${data.sessionStatus_name}"`);
-      logger.info(`   - sessionStatus_name === "completed": ${data.sessionStatus_name === "completed"}`);
+      logger.info(`   - statusIncludesCompleted: ${statusIncludesCompleted}`);
       logger.info(`   - isRejected: ${isRejected}`);
       logger.info(`   - isDateCompleted (date < today): ${isDateCompleted}`);
-      logger.info(`   - completion formula: !isRejected && (status==="completed" || dateBeforeToday)`);
-      logger.info(`   - completion formula: !${isRejected} && (${data.sessionStatus_name === "completed"} || ${isDateCompleted})`);
+      logger.info(`   - completion rule: statusIncludesCompleted && isDateCompleted && !isRejected`);
       logger.info(`   - final completed flag: ${result.completed}`);
       logger.info(`   - final rejected flag: ${result.rejected}`);
       logger.debug(`Parsed session data:`, JSON.stringify(result, null, 2));

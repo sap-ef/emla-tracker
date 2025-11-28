@@ -113,71 +113,59 @@ async function sessionSync(req) {
           const sessionData = await checkSessionStatus(check.sessionId, logger);
 
           if (sessionData) {
-            // Always update status and reset flags for fresh state
+            // Build update payload
             const updateData = {};
-            
-            // Store the raw status value
             updateData[check.statusField] = sessionData.status || sessionData.rawStatus || 'Unknown';
-            logger.info(`📝 Session ${check.sessionId} status - updating ${check.statusField} to '${updateData[check.statusField]}'`);
-            
-            // ALWAYS reset completion and rejection flags first
-            updateData[check.field] = false; // Reset completion flag
-            updateData[check.rejectionField] = false; // Reset rejection flag
-            
-            // Then set the appropriate flags based on current status
+            // Reset flags first
+            updateData[check.field] = false;
+            updateData[check.rejectionField] = false;
+
             if (sessionData.completed) {
-              updateData[check.field] = true; // Set Boolean true for completion
-              logger.info(`📅 Session ${check.sessionId} completed - updating ${check.field} to true`);
-              
-              // Also update completedOn date if provided
-              if (sessionData.completedDate) {
-                updateData.completedOn = sessionData.completedDate;
-              }
+              updateData[check.field] = true;
+              if (sessionData.completedDate) updateData.completedOn = sessionData.completedDate;
             }
-            
             if (sessionData.rejected) {
               updateData[check.rejectionField] = true;
-              logger.info(`❌ Session ${check.sessionId} rejected - updating ${check.rejectionField} to true`);
             }
 
-            logger.debug(`🔄 Updating database for record ID: ${record.ID}`);
-            logger.debug(`🔄 Update data:`, JSON.stringify(updateData, null, 2));
-            
-            const updateResult = await UPDATE(EMLACustomers)
-              .set(updateData)
-              .where({ ID: record.ID });
+            // Perform the DB update
+            const updateResult = await UPDATE(EMLACustomers).set(updateData).where({ ID: record.ID });
+            totalUpdated++;
 
-            logger.debug(`🔄 Update result:`, updateResult);
-            totalUpdated++; // Increment the counter when database is updated
-            
-            if (sessionData.completed) {
-              logger.info(
-                `✅ Updated ${check.type} session ${check.sessionId} for customer ${record.customerNumber} - marked as completed`
-              );
-              if (sessionData.completedDate) {
-                logger.debug(
-                  `   - Completed date set to: ${sessionData.completedDate}`
-                );
-              }
-            } else if (sessionData.rejected) {
-              logger.info(
-                `❌ Updated ${check.type} session ${check.sessionId} for customer ${record.customerNumber} - marked as rejected`
-              );
-            } else {
-              logger.info(
-                `📝 Updated ${check.type} session ${check.sessionId} for customer ${record.customerNumber} - status updated to '${updateData[check.statusField]}', flags reset`
-              );
-            }
+            // Consolidate a single log entry with all relevant info for this session
+            const details = {
+              recordID: record.ID,
+              customerNumber: record.customerNumber,
+              sessionType: check.type,
+              sessionId: check.sessionId,
+              previous: {
+                status: record[check.statusField] || null,
+                completedFlag: record[check.field] || false,
+                rejectedFlag: record[check.rejectionField] || false,
+              },
+              remote: sessionData,
+              computed: {
+                statusIncludesCompleted: sessionData.sessionStatus_name && sessionData.sessionStatus_name.toLowerCase().includes("completed"),
+                isRejected: sessionData.rejected || false,
+                isDateCompleted: (() => {
+                  if (!sessionData.sessionDate) return false;
+                  const sessionDate = new Date(sessionData.sessionDate);
+                  const today = new Date(); today.setHours(0,0,0,0); sessionDate.setHours(0,0,0,0);
+                  return sessionDate < today;
+                })(),
+                finalCompletedFlag: updateData[check.field],
+                finalRejectedFlag: updateData[check.rejectionField]
+              },
+              updateData: updateData,
+              updateResult: updateResult
+            };
+
+            logger.info(`SessionSyncResult: ${JSON.stringify(details)}`);
           } else {
-            logger.debug(
-              `⏳ ${check.type} session ${check.sessionId} still in progress`
-            );
+            logger.debug(`Session ${check.sessionId} still in progress`);
           }
         } catch (error) {
-          logger.error(
-            `❌ Failed to check ${check.type} session ${check.sessionId} for customer ${record.customerNumber}:`,
-            error.message
-          );
+          logger.error(`❌ Failed to check ${check.type} session ${check.sessionId} for customer ${record.customerNumber}: ${error.message}`);
         }
       }
     }
@@ -301,22 +289,24 @@ async function checkSessionStatus(sessionId, logger) {
         logger.info(`   - has sessionDate: ${!!data.sessionDate}`);
       }
       
+      const statusIncludesCompleted = data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed");
+      const completedByStatusAndDate = !isRejected && statusIncludesCompleted && isDateCompleted;
+
       const result = {
-        completed:
-          !isRejected && (data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed") || isDateCompleted),
+        // require BOTH: status indicates 'completed' AND date is before today (unless rejected)
+        completed: completedByStatusAndDate,
         rejected: isRejected,
         status: data.sessionStatus_name || 'Unknown',
         completedDate: data.completedDate ? new Date(data.completedDate) : null,
         progress: data.progress || 0,
       };
-      
+
       logger.info(`🔍 Session ${sessionId} completion analysis:`);
       logger.info(`   - sessionStatus_name: "${data.sessionStatus_name}"`);
-      logger.info(`   - sessionStatus_name.toLowerCase().includes("completed"): ${data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed")}`);
+      logger.info(`   - statusIncludesCompleted: ${statusIncludesCompleted}`);
       logger.info(`   - isRejected: ${isRejected}`);
       logger.info(`   - isDateCompleted (date < today): ${isDateCompleted}`);
-      logger.info(`   - completion formula: !isRejected && (status.includes("completed") || dateBeforeToday)`);
-      logger.info(`   - completion formula: !${isRejected} && (${data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed")} || ${isDateCompleted})`);
+      logger.info(`   - completion rule: statusIncludesCompleted && isDateCompleted && !isRejected`);
       logger.info(`   - final completed flag: ${result.completed}`);
       logger.info(`   - final rejected flag: ${result.rejected}`);
       logger.debug(`📊 Final result for ${sessionId}:`, JSON.stringify(result, null, 2));
