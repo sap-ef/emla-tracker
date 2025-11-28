@@ -1,0 +1,9 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
+	<Button
+		id="infoButton"
+		icon="sap-icon://hint"
+		type="Transparent"
+		press="handler.onOpenInfoDialog"
+		core:require="{ handler: 'emlatracker/emlatracker/ext/controller/InfoDialogController'}"
+		tooltip="Show Additional Information" />
+</core:FragmentDefinition>

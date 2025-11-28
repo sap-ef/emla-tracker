@@ -65,6 +65,7 @@ async function updateSessionStatus(req) {
           field: "isTrackAppCompleted",
           rejectionField: "isTrackAppRejected",
           statusField: "trackAppStatus",
+          dateField: "trackAppDate",
         });
         logger.debug(
           `  - TP1 session ${record.trackApp} needs checking (current status: ${record.isTrackAppCompleted})`
@@ -82,6 +83,7 @@ async function updateSessionStatus(req) {
           field: "isTrackAppTP2Completed",
           rejectionField: "isTrackAppTP2Rejected",
           statusField: "trackAppTP2Status",
+          dateField: "trackAppTP2Date",
         });
         logger.debug(
           `  - TP2 session ${record.trackAppTP2} needs checking (current status: ${record.isTrackAppTP2Completed})`
@@ -99,6 +101,7 @@ async function updateSessionStatus(req) {
           field: "isTrackAppSHCompleted",
           rejectionField: "isTrackAppSHRejected",
           statusField: "trackAppSHStatus",
+          dateField: "trackAppSHDate",
         });
         logger.debug(
           `  - SH session ${record.trackAppSH} needs checking (current status: ${record.isTrackAppSHCompleted})`
@@ -128,6 +131,12 @@ async function updateSessionStatus(req) {
             // Store the raw status value
             updateData[check.statusField] = sessionData.status || sessionData.rawStatus || 'Unknown';
             logger.info(`📝 Session ${check.sessionId} status - updating ${check.statusField} to '${updateData[check.statusField]}'`);
+            
+            // Update session date if available
+            if (sessionData.sessionDate && check.dateField) {
+              updateData[check.dateField] = new Date(sessionData.sessionDate);
+              logger.info(`📅 Session ${check.sessionId} date - updating ${check.dateField} to '${sessionData.sessionDate}'`);
+            }
             
             // Set flags only if completed or rejected
             if (sessionData.completed || sessionData.rejected) {
@@ -319,6 +328,7 @@ async function checkSessionStatus(sessionId, logger) {
         completed: completedByStatusAndDate,
         rejected: isRejected,
         status: data.sessionStatus_name || 'Unknown',
+        sessionDate: data.sessionDate || null,
         completedDate: data.completedDate ? new Date(data.completedDate) : null,
         progress: data.progress || 0,
       };

@@ -23,9 +23,13 @@ entity EMLACustomers : managed {
       trackAppTP2            : String(36);
       trackAppSH             : String(36);
 
-      trackAppStatus         : String(20);
-      trackAppTP2Status      : String(20);
-      trackAppSHStatus       : String(20);
+      trackAppStatus         : String(30);
+      trackAppTP2Status      : String(30);
+      trackAppSHStatus       : String(30);
+
+      trackAppDate           : Date;
+      trackAppTP2Date        : Date;
+      trackAppSHDate         : Date;
 
       isTrackAppCompleted    : Boolean default false;
       isTrackAppTP2Completed : Boolean default false;

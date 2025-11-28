@@ -143,6 +143,14 @@
                         "placement": "Before"
                       },
                       "template": "emlatracker.emlatracker.ext.fragment.OpenApp"
+                    },
+                    "InfoButton": {
+                      "header": "Info",
+                      "width": "60px",
+                      "position": {
+                        "placement": "After"
+                      },
+                      "template": "emlatracker.emlatracker.ext.fragment.InfoButton"
                     }
                   },
                   "actions": {
