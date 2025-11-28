@@ -4,11 +4,11 @@
 			<!-- Botão 1 - sempre visível, texto varia -->
 			<HBox id="hboxButton1">
 				<!-- Icon for TP1 / Workflow App availability -->
-				<core:Icon id="iconTP1" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
-					src="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'emlaType'},{path:'isTrackAppRejected'}], formatter:'formatter.iconTP1'}"
-					color="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'isTrackAppRejected'}], formatter:'formatter.colorTP1'}"
+			<core:Icon id="iconTP1" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
+				src="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'emlaType'},{path:'isTrackAppRejected'}], formatter:'formatter.iconTP1'}"
+				color="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'isTrackAppRejected'}], formatter:'formatter.colorTP1'}"
 					class="emlaIconPad"
-					tooltip="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'isTrackAppRejected'},{path:'trackAppStatus'}], formatter:'formatter.tooltipTP1'}"/>
+					tooltip="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'isTrackAppRejected'},{path:'trackAppStatus'},{path:'trackAppDate'}], formatter:'formatter.tooltipTP1'}"/>
 				<Link id="button1"
 					  text="{= ${emlaType} === 'Public Cloud ERP' ? 'TP1' : ${emlaType} === 'Integration Suite' ? 'TP1' : 'Workflow App'}"
 					  press="handler.onPressEMLA" 
@@ -30,7 +30,7 @@
 				src="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'emlaType'},{path:'isTrackAppTP2Rejected'}], formatter:'formatter.iconTP2'}"
 				color="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'isTrackAppTP2Rejected'}], formatter:'formatter.colorTP2'}"
 					class="emlaIconPad"
-					tooltip="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'isTrackAppTP2Rejected'},{path:'trackAppTP2Status'}], formatter:'formatter.tooltipTP2'}"/>
+					tooltip="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'isTrackAppTP2Rejected'},{path:'trackAppTP2Status'},{path:'trackAppTP2Date'}], formatter:'formatter.tooltipTP2'}"/>
 				<Link id="button2"
 					  text="{= ${emlaType} === 'Integration Suite' ? 'TP2' : ''}"
 					  press="handler.onPressEMLA" 
@@ -52,7 +52,7 @@
 				src="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'},{path:'emlaType'},{path:'isTrackAppSHRejected'}], formatter:'formatter.iconSH'}"
 				color="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'},{path:'isTrackAppSHRejected'}], formatter:'formatter.colorSH'}"
 					class="emlaIconPad"
-					tooltip="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'},{path:'isTrackAppSHRejected'},{path:'trackAppSHStatus'}], formatter:'formatter.tooltipSH'}"/>
+					tooltip="{parts:[{path:'trackAppSH'},{path:'isTrackAppSHCompleted'},{path:'isTrackAppSHRejected'},{path:'trackAppSHStatus'},{path:'trackAppSHDate'}], formatter:'formatter.tooltipSH'}"/>
 				<Link id="button3"
 					  text="{= ${emlaType} === 'Integration Suite' ? 'SH' : ''}"
 					  press="handler.onPressEMLA" 

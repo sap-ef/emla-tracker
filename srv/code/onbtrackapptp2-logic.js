@@ -6,8 +6,6 @@ module.exports = async function (request) {
   const cds = require("@sap/cds");
   const { ID, sessionType } = request.data;
 
-  console.log("onbTrackAppTP2 called for ID:", ID, "sessionType:", sessionType);
-
   try {
     // 1. Buscar o customer pelo ID
     const customer = await SELECT.one.from("EMLACustomers").where({ ID: ID });
@@ -29,21 +27,8 @@ module.exports = async function (request) {
       };
     }
 
-    // 3. Chamar serviço externo para gerar código
-    console.log("=== TP2 EXTERNAL SERVICE CALL ===");
-    console.log("Customer ID:", customer.ID);
-    console.log("Existing trackApp:", customer.trackApp);
-    console.log("Existing trackAppTP2:", customer.trackAppTP2);
-    console.log("Will call external service for TP2...");
-    
     const generatedTrackAppTP2 = await callExternalService(customer, request, sessionType);
 
-    console.log("Generated trackAppTP2:", generatedTrackAppTP2);
-    console.log("Is it same as existing trackApp?", generatedTrackAppTP2 === customer.trackApp);
-    console.log("=== END TP2 EXTERNAL SERVICE CALL ===");
-
-    // Don't treat fallback codes as errors - they are valid UUIDs or usable codes
-    // Only treat actual errors as errors (empty or null responses)
     if (!generatedTrackAppTP2) {
       return request.error(
         500,
@@ -104,9 +89,6 @@ async function callExternalService(customer, request, sessionType) {
     if (assignDateFmt) payloadInput.onbAdvAssignDate = assignDateFmt;
     const payload = { input: payloadInput };
 
-    console.log("Calling external service with payload for TP2:", JSON.stringify(payload, null, 2));
-
-    // Fazer a chamada ao serviço OData
     let result;
     try {
       result = await destination.post("/emlaSession", payload);
@@ -118,15 +100,9 @@ async function callExternalService(customer, request, sessionType) {
       throw e;
     }
 
-    console.log("External service response for TP2:", JSON.stringify(result, null, 2));
-
-    // Extrair o código gerado da resposta
     if (result && result.value) {
-      console.log("TP2 result value:", result.value);
-      console.log("TP2 result value type:", typeof result.value);
       return result.value;
     } else {
-      console.log("Invalid response format from external service for TP2:", result);
       throw new Error("Invalid response format from external service");
     }
   } catch (error) {

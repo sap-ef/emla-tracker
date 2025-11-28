@@ -6,8 +6,6 @@ module.exports = async function (request) {
   const cds = require("@sap/cds");
   const { ID, sessionType } = request.data;
 
-  console.log("onbTrackAppSH called for ID:", ID, "sessionType:", sessionType);
-
   try {
     // 1. Buscar o customer pelo ID
     const customer = await SELECT.one.from("EMLACustomers").where({ ID: ID });
@@ -32,10 +30,6 @@ module.exports = async function (request) {
     // 3. Chamar serviço externo para gerar código
     const generatedTrackAppSH = await callExternalService(customer, request, sessionType);
 
-    console.log("Generated trackAppSH:", generatedTrackAppSH);
-
-    // Don't treat fallback codes as errors - they are valid UUIDs or usable codes
-    // Only treat actual errors as errors (empty or null responses)
     if (!generatedTrackAppSH) {
       return request.error(
         500,
@@ -96,9 +90,6 @@ async function callExternalService(customer, request, sessionType) {
     if (assignDateFmt) payloadInput.onbAdvAssignDate = assignDateFmt;
     const payload = { input: payloadInput };
 
-    console.log("Calling external service with payload for SH:", payload);
-
-    // Fazer a chamada ao serviço OData
     let result;
     try {
       result = await destination.post("/emlaSession", payload);
@@ -110,14 +101,9 @@ async function callExternalService(customer, request, sessionType) {
       throw e;
     }
 
-    console.log("External service response for SH:", JSON.stringify(result, null, 2));
-
-    // Extrair o código gerado da resposta
     if (result && result.value) {
-      console.log("SH result:", result.value);
       return result.value;
     } else {
-      console.log("Invalid response format from external service for SH:", result);
       throw new Error("Invalid response format from external service");
     }
   } catch (error) {

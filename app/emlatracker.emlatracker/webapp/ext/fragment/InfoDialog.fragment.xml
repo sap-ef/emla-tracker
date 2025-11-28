@@ -21,24 +21,24 @@
 					
 					<Label id="lblAdvisor" text="BTP Onboarding Advisor" />
 					<Text id="txtAdvisor" text="{btpOnbAdvNome}" />
+
+                    <Label id="lblTrackAppSHStatus" text="Track App SH Status" />
+					<Text id="txtTrackAppSHStatus" text="{trackAppSHStatus}" />
 					
+					<Label id="lblTrackAppSHDate" text="Track App SH Date" />
+					<Text id="txtTrackAppSHDate" text="{trackAppSHDate}" />
+                    
 					<Label id="lblTrackAppStatus" text="Track App Status" />
 					<Text id="txtTrackAppStatus" text="{trackAppStatus}" />
 					
 					<Label id="lblTrackAppDate" text="Track App Date" />
-					<Text id="txtTrackAppDate" text="{path: 'trackAppDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}" />
+					<Text id="txtTrackAppDate" text="{trackAppDate}" />
 					
 					<Label id="lblTrackAppTP2Status" text="Track App TP2 Status" />
 					<Text id="txtTrackAppTP2Status" text="{trackAppTP2Status}" />
 					
 					<Label id="lblTrackAppTP2Date" text="Track App TP2 Date" />
-					<Text id="txtTrackAppTP2Date" text="{path: 'trackAppTP2Date', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}" />
-					
-					<Label id="lblTrackAppSHStatus" text="Track App SH Status" />
-					<Text id="txtTrackAppSHStatus" text="{trackAppSHStatus}" />
-					
-					<Label id="lblTrackAppSHDate" text="Track App SH Date" />
-					<Text id="txtTrackAppSHDate" text="{path: 'trackAppSHDate', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}" />
+					<Text id="txtTrackAppTP2Date" text="{trackAppTP2Date}" />
 					
 					<Label id="lblCompletedOn" text="Completed On" />
 					<Text id="txtCompletedOn" text="{path: 'completedOn', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}" />

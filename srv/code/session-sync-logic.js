@@ -13,10 +13,8 @@ const { executeHttpRequest } = require("@sap-cloud-sdk/http-client");
  */
 async function sessionSync(req) {
   const logger = cds.log("session-sync");
-  logger.info("Starting session sync for selected records...");
 
   try {
-    // Extract selected record IDs from request parameters
     const params = req.params;
     if (!params || params.length === 0) {
       logger.warn("No records selected for session sync");
@@ -24,32 +22,24 @@ async function sessionSync(req) {
     }
 
     const selectedIds = params.map(param => param.ID);
-    logger.info(`Processing session sync for ${selectedIds.length} selected records`);
 
-    // Get database connection
     const db = await cds.connect.to("db");
     const { EMLACustomers } = db.entities;
 
     let totalUpdated = 0;
     let totalChecked = 0;
 
-    // Fetch only the selected records
     const selectedRecords = await SELECT.from(EMLACustomers).where({ 
       ID: { 'in': selectedIds } 
     });
 
-    logger.info(`Found ${selectedRecords.length} records to process`);
-
-    // Process each selected record
     for (const record of selectedRecords) {
-      logger.debug(
-        `Processing record ID: ${record.ID}, Customer: ${record.customerNumber}`
-      );
-
       const sessionChecks = [];
 
-      // Check TP1 session if exists and not completed
-      if (record.trackApp && !isCompletedValue(record.isTrackAppCompleted)) {
+      logger.info(`Processing record ID: ${record.ID}, customerNumber: ${record.customerNumber}`);
+
+      // Check ALL sessions regardless of current completion status to re-validate
+      if (record.trackApp) {
         sessionChecks.push({
           sessionId: record.trackApp,
           type: "TP1",
@@ -58,16 +48,10 @@ async function sessionSync(req) {
           statusField: "trackAppStatus",
           dateField: "trackAppDate",
         });
-        logger.debug(
-          `  - TP1 session ${record.trackApp} needs checking (current status: ${record.isTrackAppCompleted})`
-        );
       }
 
-      // Check TP2 session if exists and not completed
-      if (
-        record.trackAppTP2 &&
-        !isCompletedValue(record.isTrackAppTP2Completed)
-      ) {
+      // Check TP2 session if exists
+      if (record.trackAppTP2) {
         sessionChecks.push({
           sessionId: record.trackAppTP2,
           type: "TP2",
@@ -76,16 +60,10 @@ async function sessionSync(req) {
           statusField: "trackAppTP2Status",
           dateField: "trackAppTP2Date",
         });
-        logger.debug(
-          `  - TP2 session ${record.trackAppTP2} needs checking (current status: ${record.isTrackAppTP2Completed})`
-        );
       }
 
-      // Check SH session if exists and not completed
-      if (
-        record.trackAppSH &&
-        !isCompletedValue(record.isTrackAppSHCompleted)
-      ) {
+      // Check SH session if exists
+      if (record.trackAppSH) {
         sessionChecks.push({
           sessionId: record.trackAppSH,
           type: "SH",
@@ -94,49 +72,46 @@ async function sessionSync(req) {
           statusField: "trackAppSHStatus",
           dateField: "trackAppSHDate",
         });
-        logger.debug(
-          `  - SH session ${record.trackAppSH} needs checking (current status: ${record.isTrackAppSHCompleted})`
-        );
       }
-
-      logger.debug(
-        `  - Total sessions to check for this record: ${sessionChecks.length}`
-      );
 
       // Process each session for this record
       for (const check of sessionChecks) {
         totalChecked++;
-        logger.info(
-          `Checking ${check.type} session: ${check.sessionId} (${totalChecked}/${totalChecked})`
-        );
-
+        logger.info(`Checking ${check.type} session: ${check.sessionId}`);
         try {
-          // Call webservice to check session status
-          logger.debug(`Calling webservice for session ${check.sessionId}...`);
           const sessionData = await checkSessionStatus(check.sessionId, logger);
+
+          logger.info(`Session data received for ${check.sessionId}:`, JSON.stringify(sessionData, null, 2));
 
           if (sessionData) {
             // Build update payload
             const updateData = {};
-            updateData[check.statusField] = sessionData.status || sessionData.rawStatus || 'Unknown';
-            // Update session date if available
+            updateData[check.statusField] = sessionData.status || 'Unknown';
+            
+            // Update session-specific date field (trackAppDate, trackAppTP2Date, or trackAppSHDate)
             if (sessionData.sessionDate && check.dateField) {
-              updateData[check.dateField] = new Date(sessionData.sessionDate);
+              logger.info(`Setting ${check.dateField} to ${sessionData.sessionDate} for ${check.type} session`);
+              // For date-only fields, keep as string in YYYY-MM-DD format
+              updateData[check.dateField] = sessionData.sessionDate;
             }
-            // Reset flags first
+            
+            // Reset completion/rejection flags
             updateData[check.field] = false;
             updateData[check.rejectionField] = false;
 
+            // Set completion flag if completed (completedOn is managed by setCompleted action)
             if (sessionData.completed) {
               updateData[check.field] = true;
-              if (sessionData.completedDate) updateData.completedOn = sessionData.completedDate;
             }
+            
+            // Set rejection flag if rejected
             if (sessionData.rejected) {
               updateData[check.rejectionField] = true;
             }
 
-            // Perform the DB update
+            logger.info(`Updating record ${record.ID} with:`, JSON.stringify(updateData, null, 2));
             const updateResult = await UPDATE(EMLACustomers).set(updateData).where({ ID: record.ID });
+            logger.info(`Update result:`, updateResult);
             totalUpdated++;
 
             // Consolidate a single log entry with all relevant info for this session
@@ -168,11 +143,9 @@ async function sessionSync(req) {
             };
 
             logger.info(`SessionSyncResult: ${JSON.stringify(details)}`);
-          } else {
-            logger.debug(`Session ${check.sessionId} still in progress`);
           }
         } catch (error) {
-          logger.error(`❌ Failed to check ${check.type} session ${check.sessionId} for customer ${record.customerNumber}: ${error.message}`);
+          logger.error(`Failed ${check.type} session ${check.sessionId}: ${error.message}`);
         }
       }
     }
@@ -187,44 +160,23 @@ async function sessionSync(req) {
 }
 
 // Helper function to check if a value represents completion
-function isCompletedValue(value) {
-  const logger = cds.log("session-sync");
-  logger.debug(`Checking completion value: ${value} (type: ${typeof value})`);
-
+function isCompletionValue(value, logger) {
   if (value === true || value === 1) {
-    logger.debug("Value is boolean true or number 1 - completed");
     return true;
   }
   if (typeof value === "string") {
-    const s = value.trim().toLowerCase();
-    const isCompleted = s === "true" || s === "yes" || s === "x" || s === "1";
-    logger.debug(
-      `String value '${value}' normalized to '${s}' - completed: ${isCompleted}`
-    );
-    return isCompleted;
+    const lowerValue = value.toLowerCase().trim();
+    return ["yes", "completed", "true", "1"].includes(lowerValue);
   }
-  logger.debug("Value not recognized as completed");
   return false;
 }
 
 // Function to call webservice and check session status
 async function checkSessionStatus(sessionId, logger) {
-  logger.info(
-    `🌐 Calling webservice to check status for session: ${sessionId}`
-  );
-
   try {
-    // Use the same destination and API path as session-status-logic.js
-    const destination = "onb_session"; // Configure this in BTP destinations
+    const destination = "onb_session";
     const apiPath = `/api/Sessions(ID='${sessionId}')`;
 
-    logger.info(`📍 Destination name: ${destination}`);
-    logger.info(`📍 API path: ${apiPath}`);
-    logger.info(
-      `📍 Full request URL will be: [destination-base-url]${apiPath}`
-    );
-
-    // Log the request configuration before making the call
     const destinationConfig = { destinationName: destination };
     const requestConfig = {
       method: "GET",
@@ -234,33 +186,18 @@ async function checkSessionStatus(sessionId, logger) {
       },
     };
 
-    logger.info(
-      `🔧 Destination config:`,
-      JSON.stringify(destinationConfig, null, 2)
-    );
-    logger.info(`🔧 Request config:`, JSON.stringify(requestConfig, null, 2));
-
-    // Make the HTTP request
-    logger.info(`🚀 Making HTTP request now...`);
     const response = await executeHttpRequest(destinationConfig, requestConfig);
-
-    logger.info(`✅ Webservice response status: ${response.status}`);
-    logger.info(
-      `📄 Webservice response headers:`,
-      JSON.stringify(response.headers, null, 2)
-    );
-    logger.info(
-      `� Webservice response data:`,
-      JSON.stringify(response.data, null, 2)
-    );
 
     if (response.status === 200) {
       const data = response.data;
       
-      // Log the exact status value we received
-      logger.info(`🔍 Raw sessionStatus_name received: "${data.sessionStatus_name}"`);
+      // Log the full response to see actual field names
+      logger.info(`Raw OData response for session ${sessionId}:`, JSON.stringify(data, null, 2));
       
-      // Check if this is a rejected session first - be more flexible with rejection detection
+      // Extract session date - try multiple possible field names
+      const rawSessionDate = data.sessionDate || data.session_date || data.date || data.startDate || data.start_date || null;
+      
+      // Check if this is a rejected session first
       const isRejected = data.sessionStatus_name && 
         (data.sessionStatus_name.toLowerCase().includes("reject") ||
          data.sessionStatus_name.toLowerCase().includes("cancelled") ||
@@ -270,13 +207,11 @@ async function checkSessionStatus(sessionId, logger) {
          data.sessionStatus_name.toLowerCase().includes("denied") ||
          data.sessionStatus_name.toLowerCase().includes("deny"));
       
-      logger.info(`🔍 Rejection check result: ${isRejected} (for status: "${data.sessionStatus_name}")`);
-      
       // Check if sessionDate exists and is BEFORE today (only for non-rejected sessions)
       // Sessions created today should NOT be automatically marked as completed
       let isDateCompleted = false;
-      if (!isRejected && data.sessionDate) {
-        const sessionDate = new Date(data.sessionDate);
+      if (!isRejected && rawSessionDate) {
+        const sessionDate = new Date(rawSessionDate);
         const today = new Date();
         // Set time to 00:00:00 for date-only comparison
         today.setHours(0, 0, 0, 0);
@@ -284,16 +219,6 @@ async function checkSessionStatus(sessionId, logger) {
         
         // Only mark as completed if session date is BEFORE today (not today or future)
         isDateCompleted = sessionDate < today;
-        logger.info(`📅 Date analysis for session ${sessionId}:`);
-        logger.info(`   - sessionDate from API: ${data.sessionDate}`);
-        logger.info(`   - sessionDate parsed: ${sessionDate.toISOString()}`);
-        logger.info(`   - today: ${today.toISOString()}`);
-        logger.info(`   - sessionDate < today (must be BEFORE today): ${isDateCompleted}`);
-        logger.debug(`📅 Session date: ${data.sessionDate}, Today: ${today.toISOString().split('T')[0]}, Date completed: ${isDateCompleted}`);
-      } else {
-        logger.info(`📅 Date check skipped for session ${sessionId}:`);
-        logger.info(`   - isRejected: ${isRejected}`);
-        logger.info(`   - has sessionDate: ${!!data.sessionDate}`);
       }
       
       const statusIncludesCompleted = data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed");
@@ -304,38 +229,20 @@ async function checkSessionStatus(sessionId, logger) {
         completed: completedByStatusAndDate,
         rejected: isRejected,
         status: data.sessionStatus_name || 'Unknown',
-        sessionDate: data.sessionDate || null,
-        completedDate: data.completedDate ? new Date(data.completedDate) : null,
+        rawStatus: data.sessionStatus || data.status || null,
+        sessionDate: rawSessionDate,
+        completedDate: data.completedDate || data.completed_date || null,
         progress: data.progress || 0,
+        rawData: data, // Include full response for debugging
       };
 
-      logger.info(`🔍 Session ${sessionId} completion analysis:`);
-      logger.info(`   - sessionStatus_name: "${data.sessionStatus_name}"`);
-      logger.info(`   - statusIncludesCompleted: ${statusIncludesCompleted}`);
-      logger.info(`   - isRejected: ${isRejected}`);
-      logger.info(`   - isDateCompleted (date < today): ${isDateCompleted}`);
-      logger.info(`   - completion rule: statusIncludesCompleted && isDateCompleted && !isRejected`);
-      logger.info(`   - final completed flag: ${result.completed}`);
-      logger.info(`   - final rejected flag: ${result.rejected}`);
-      logger.debug(`📊 Final result for ${sessionId}:`, JSON.stringify(result, null, 2));
       return result;
     } else {
-      logger.warn(
-        `⚠️  Webservice returned non-200 status ${response.status} for session ${sessionId}`
-      );
+      logger.warn(`Webservice returned status ${response.status} for session ${sessionId}`);
       return null;
     }
   } catch (error) {
-    const destination = "onb_session"; // Redeclare for error handling
-    const apiPath = `/api/Sessions(ID='${sessionId}')`;
-
-    logger.error(
-      `🔥 Webservice call failed for session ${sessionId}:`,
-      error.message
-    );
-    logger.info(`📍 Attempted destination: ${destination}`);
-    logger.info(`📍 Attempted API path: ${apiPath}`);
-    logger.info(`🔍 Full error details:`, error);
+    logger.debug(`Webservice call failed for session ${sessionId}: ${error.message}`);
 
     // For development/testing - return mock data if destination not configured
     if (
@@ -343,12 +250,7 @@ async function checkSessionStatus(sessionId, logger) {
       error.message.includes("ENOTFOUND") ||
       error.message.includes("404")
     ) {
-      logger.warn(
-        `📝 Using mock data for session ${sessionId} (webservice not available)`
-      );
-      logger.info(
-        `💡 To use real webservice, configure BTP destination '${destination}' with base URL`
-      );
+      logger.debug(`Using mock data for session ${sessionId}`);
       // For new sessions, always return in-progress, never completed
       return {
         completed: false,

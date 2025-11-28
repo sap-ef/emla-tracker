@@ -6,8 +6,6 @@ module.exports = async function (request) {
   const cds = require("@sap/cds");
   const { ID, sessionType } = request.data;
 
-  console.log("onbTrackApp called for ID:", ID, "sessionType:", sessionType);
-
   try {
     // 1. Buscar o customer pelo ID
     const customer = await SELECT.one.from("EMLACustomers").where({ ID: ID });
@@ -94,9 +92,6 @@ async function callExternalService(customer, request, sessionType) {
     if (assignDateFmt) payloadInput.onbAdvAssignDate = assignDateFmt; // only include if valid
     const payload = { input: payloadInput };
 
-    console.log("Calling external service with payload:", payload);
-
-    // Fazer a chamada ao serviço OData
     let result;
     try {
       result = await destination.post("/emlaSession", payload);
@@ -111,7 +106,6 @@ async function callExternalService(customer, request, sessionType) {
 
     // Extrair o código gerado da resposta
     if (result && result.value) {
-      console.log(result.value);
       return result.value;
     } else {
       throw new Error("Invalid response format from external service");

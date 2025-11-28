@@ -66,7 +66,7 @@ sap.ui.define([], function () {
     return iconResult;
   }
 
-  function tooltip(trackApp, completed, sessionLabel, rejected, status) {
+  function tooltip(trackApp, completed, sessionLabel, rejected, status, date) {
     if (!sessionLabel) sessionLabel = "Sessão"; // fallback
     
     // Check if trackApp is empty string, null, undefined, or just whitespace
@@ -74,9 +74,26 @@ sap.ui.define([], function () {
       return "";
     }
     
-    // Build tooltip text based on status and completion/rejection
-    let tooltipText = sessionLabel + ": ";
+    // Format: SessionType:DATE:Status
+    let tooltipText = sessionLabel;
     
+    // Add date if available
+    if (date) {
+      let dateStr = "";
+      if (date instanceof Date) {
+        // Format date as YYYY-MM-DD
+        dateStr = date.toISOString().split('T')[0];
+      } else if (typeof date === "string" && date.trim() !== "") {
+        // Already a string, use as-is (should be YYYY-MM-DD format)
+        dateStr = date.split('T')[0]; // Remove time part if present
+      }
+      if (dateStr) {
+        tooltipText += ":" + dateStr;
+      }
+    }
+    
+    // Add status
+    tooltipText += ":";
     if (status && status.trim() !== "" && status !== "Unknown") {
       // Use the actual status text from external system
       tooltipText += status;
@@ -147,8 +164,8 @@ sap.ui.define([], function () {
       
       return icon(trackApp, completed, emlaType, "TP1", rejected);
     },
-    tooltipTP1: function (trackApp, completed, rejected, status) {
-      return tooltip(trackApp, completed, "TP1", rejected, status);
+    tooltipTP1: function (trackApp, completed, rejected, status, date) {
+      return tooltip(trackApp, completed, "TP1", rejected, status, date);
     },
     colorTP1: function (trackApp, completed, rejected) {
       console.log("🔥 colorTP1 called with rejected:", rejected, typeof rejected);
@@ -172,8 +189,8 @@ sap.ui.define([], function () {
       
       return icon(trackAppTP2, completedTP2, emlaType, "TP2", rejectedTP2);
     },
-    tooltipTP2: function (trackAppTP2, completedTP2, rejectedTP2, statusTP2) {
-      return tooltip(trackAppTP2, completedTP2, "TP2", rejectedTP2, statusTP2);
+    tooltipTP2: function (trackAppTP2, completedTP2, rejectedTP2, statusTP2, dateTP2) {
+      return tooltip(trackAppTP2, completedTP2, "TP2", rejectedTP2, statusTP2, dateTP2);
     },
     colorTP2: function (trackAppTP2, completedTP2, rejectedTP2) {
       console.log("🔥 colorTP2 called with rejectedTP2:", rejectedTP2, typeof rejectedTP2);
@@ -202,8 +219,8 @@ sap.ui.define([], function () {
       console.log("🔥🔥🔥 iconSH returning:", result);
       return result;
     },
-    tooltipSH: function (trackAppSH, completedSH, rejectedSH, statusSH) {
-      return tooltip(trackAppSH, completedSH, "SH", rejectedSH, statusSH);
+    tooltipSH: function (trackAppSH, completedSH, rejectedSH, statusSH, dateSH) {
+      return tooltip(trackAppSH, completedSH, "SH", rejectedSH, statusSH, dateSH);
     },
     colorSH: function (trackAppSH, completedSH, rejectedSH) {
       console.log("🔥 colorSH called with rejectedSH:", rejectedSH, typeof rejectedSH);

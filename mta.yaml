@@ -83,6 +83,8 @@ modules:
     path: gen/srv
     parameters:
       memory: 256MB
+    properties:
+      CDS_LOG_LEVELS: all:info
     provides:
       - name: srv-api
         properties:
