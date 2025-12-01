@@ -4,7 +4,10 @@ using {EMLATracker as db} from '../db/schema.cds';
 service EMLATrackerService {
 
     @Capabilities.DeleteRestrictions.Deletable: false
-    entity EMLACustomers    as projection on db.EMLACustomers
+    entity EMLACustomers    as projection on db.EMLACustomers {
+        *,
+        virtual nextActionDate : Date
+    }
         actions {
             @Common.SideEffects       : {
                 TargetProperties: [

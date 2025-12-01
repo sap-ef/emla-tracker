@@ -91,6 +91,12 @@ annotate service.EMLACustomers with @(
         },
         {
             $Type                : 'UI.DataField',
+            Value                : nextActionDate,
+            Label                : 'Next Action',
+            ![@HTML5.CssDefaults]: {width: '110px'},
+        },
+        {
+            $Type                : 'UI.DataField',
             Value                : erpOnbAdvNome,
             Label                : 'ERP OA',
             ![@HTML5.CssDefaults]: {width: '250px'},

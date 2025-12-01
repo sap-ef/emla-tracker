@@ -52,6 +52,53 @@ class EMLATrackerService extends LCAPApplicationService {
       return sessionStatus_Logic.updateSessionStatus(request);
     });
 
+    // Calculate nextActionDate virtual field on READ
+    this.after("READ", "EMLACustomers", (customers) => {
+      if (!customers) return;
+      
+      const calculateNextActionDate = (customer) => {
+        const sessions = [];
+        
+        // Check TP1 session
+        if (customer.trackAppDate && 
+            !customer.isTrackAppCompleted && 
+            !customer.isTrackAppRejected) {
+          sessions.push(new Date(customer.trackAppDate));
+        }
+        
+        // Check TP2 session
+        if (customer.trackAppTP2Date && 
+            !customer.isTrackAppTP2Completed && 
+            !customer.isTrackAppTP2Rejected) {
+          sessions.push(new Date(customer.trackAppTP2Date));
+        }
+        
+        // Check SH session
+        if (customer.trackAppSHDate && 
+            !customer.isTrackAppSHCompleted && 
+            !customer.isTrackAppSHRejected) {
+          sessions.push(new Date(customer.trackAppSHDate));
+        }
+        
+        // Return the earliest date
+        if (sessions.length > 0) {
+          const earliestDate = new Date(Math.min(...sessions));
+          return earliestDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        }
+        
+        return null;
+      };
+      
+      // Handle both single record and array of records
+      if (Array.isArray(customers)) {
+        customers.forEach(customer => {
+          customer.nextActionDate = calculateNextActionDate(customer);
+        });
+      } else {
+        customers.nextActionDate = calculateNextActionDate(customers);
+      }
+    });
+
     return super.init();
   }
 }

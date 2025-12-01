@@ -27,7 +27,7 @@
 					
 					<Label id="lblTrackAppSHDate" text="Track App SH Date" />
 					<Text id="txtTrackAppSHDate" text="{trackAppSHDate}" />
-                    
+
 					<Label id="lblTrackAppStatus" text="Track App Status" />
 					<Text id="txtTrackAppStatus" text="{trackAppStatus}" />
 					
@@ -43,8 +43,8 @@
 					<Label id="lblCompletedOn" text="Completed On" />
 					<Text id="txtCompletedOn" text="{path: 'completedOn', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd'}}" />
 					
-					<Label id="lblNotes" text="Notes" />
-					<Text id="txtNotes" text="{notes}" />
+					<!-- <Label id="lblNotes" text="Notes" />
+					<Text id="txtNotes" text="{notes}" /> -->
 				</f:content>
 			</f:SimpleForm>
 		</content>
