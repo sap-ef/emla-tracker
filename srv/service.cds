@@ -31,7 +31,8 @@ service EMLATrackerService {
                     'trackAppSHStatus',
                     'trackAppDate',
                     'trackAppTP2Date',
-                    'trackAppSHDate'
+                    'trackAppSHDate',
+                    'notes'
                 ],
                 TargetEntities  : ['EMLACustomers']
             }

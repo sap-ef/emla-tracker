@@ -113,37 +113,37 @@ sap.ui.define([], function () {
   }
 
   function iconColor(trackApp, completed, rejected) {
-    console.log("🔥 iconColor CALLED WITH:", {
-      trackApp: trackApp,
-      completed: completed,
-      rejected: rejected,
-      rejected_type: typeof rejected
-    });
+    // console.log("🔥 iconColor CALLED WITH:", {
+    //   trackApp: trackApp,
+    //   completed: completed,
+    //   rejected: rejected,
+    //   rejected_type: typeof rejected
+    // });
     
     // Only apply semantic color if trackApp exists
     if (!trackApp || trackApp.trim() === "") {
-      console.log("🔥 iconColor: No trackApp, returning Default");
+      //console.log("🔥 iconColor: No trackApp, returning Default");
       return "Default"; // No special color for create icon
     }
     
     // Check rejection first (highest priority - red color)
     var isRejected = _normalizeCompleted(rejected);
-    console.log("🔥 iconColor: isRejected =", isRejected);
+    //console.log("🔥 iconColor: isRejected =", isRejected);
     if (isRejected) {
-      console.log("🔥 iconColor: RETURNING Negative (RED COLOR)!");
+      //console.log("🔥 iconColor: RETURNING Negative (RED COLOR)!");
       return "Negative"; // Red color for rejected sessions - changed from "Error" to "Negative"
     }
     
     // Then check completion (green color)
     var isCompleted = _normalizeCompleted(completed);
-    console.log("🔥 iconColor: isCompleted =", isCompleted);
+    //console.log("🔥 iconColor: isCompleted =", isCompleted);
     if (isCompleted) {
-      console.log("🔥 iconColor: RETURNING Positive (GREEN COLOR)!");
+      //console.log("🔥 iconColor: RETURNING Positive (GREEN COLOR)!");
       return "Positive"; // Green color for completed sessions
     }
     
     // Default color for in-progress sessions
-    console.log("🔥 iconColor: RETURNING Default");
+    //console.log("🔥 iconColor: RETURNING Default");
     return "Default";
   }
 
@@ -199,33 +199,33 @@ sap.ui.define([], function () {
       return result;
     },
     iconSH: function (trackAppSH, completedSH, emlaType, rejectedSH) {
-      console.log("🔥🔥🔥 iconSH CALLED WITH:", {
-        trackAppSH: trackAppSH,
-        completedSH: completedSH,
-        emlaType: emlaType,
-        rejectedSH: rejectedSH,
-        rejectedSH_type: typeof rejectedSH,
-        rejectedSH_stringified: JSON.stringify(rejectedSH)
-      });
+      // console.log("🔥🔥🔥 iconSH CALLED WITH:", {
+      //   trackAppSH: trackAppSH,
+      //   completedSH: completedSH,
+      //   emlaType: emlaType,
+      //   rejectedSH: rejectedSH,
+      //   rejectedSH_type: typeof rejectedSH,
+      //   rejectedSH_stringified: JSON.stringify(rejectedSH)
+      // });
       
       // Let's also test the rejection directly here
       if (rejectedSH === true || rejectedSH === "true" || rejectedSH === 1 || rejectedSH === "1") {
-        console.log("🔥🔥🔥 DIRECT REJECTION TEST: YES, this should show decline icon!");
+        // console.log("🔥🔥🔥 DIRECT REJECTION TEST: YES, this should show decline icon!");
         return "sap-icon://decline";
       }
       
-      console.log("🔥🔥🔥 iconSH calling main icon function");
+      // console.log("🔥🔥🔥 iconSH calling main icon function");
       var result = icon(trackAppSH, completedSH, emlaType, "SH", rejectedSH);
-      console.log("🔥🔥🔥 iconSH returning:", result);
+      // console.log("🔥🔥🔥 iconSH returning:", result);
       return result;
     },
     tooltipSH: function (trackAppSH, completedSH, rejectedSH, statusSH, dateSH) {
       return tooltip(trackAppSH, completedSH, "SH", rejectedSH, statusSH, dateSH);
     },
     colorSH: function (trackAppSH, completedSH, rejectedSH) {
-      console.log("🔥 colorSH called with rejectedSH:", rejectedSH, typeof rejectedSH);
+      // console.log("🔥 colorSH called with rejectedSH:", rejectedSH, typeof rejectedSH);
       var result = iconColor(trackAppSH, completedSH, rejectedSH);
-      console.log("🔥 colorSH returning:", result);
+      // console.log("🔥 colorSH returning:", result);
       return result;
     },
     greenClass: greenClass

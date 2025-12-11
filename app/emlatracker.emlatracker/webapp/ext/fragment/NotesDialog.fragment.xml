@@ -1,0 +1,31 @@
+<core:FragmentDefinition
+	xmlns="sap.m"
+	xmlns:core="sap.ui.core">
+	<Dialog
+		id="notesDialog"
+		title="Customer Notes - {customerName}"
+		contentWidth="600px"
+		contentHeight="400px">
+		<content>
+			<VBox id="notesVBox" class="sapUiSmallMargin">
+				<Label id="notesLabel" text="Notes" labelFor="notesTextArea" class="sapUiTinyMarginBottom"/>
+				<TextArea
+					id="notesTextArea"
+					value="{notes}"
+					rows="15"
+					width="100%"
+					maxLength="5000"
+					showExceededText="true"
+					placeholder="Enter notes here..."/>
+			</VBox>
+		</content>
+		<endButton>
+			<Button
+				id="closeNotesButton"
+				text="Close"
+				type="Emphasized"
+				press="handler.onCloseNotesDialog"
+				core:require="{ handler: 'emlatracker/emlatracker/ext/controller/NotesDialogController'}"/>
+		</endButton>
+	</Dialog>
+</core:FragmentDefinition>

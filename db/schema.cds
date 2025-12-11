@@ -40,6 +40,7 @@ entity EMLACustomers : managed {
       isTrackAppSHRejected   : Boolean default false;
 
       completedOn            : Date;
+      notes                  : String(5000);
 }
 
 entity EMLATypeVH       as

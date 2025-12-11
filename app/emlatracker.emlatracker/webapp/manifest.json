@@ -151,6 +151,14 @@
                         "placement": "After"
                       },
                       "template": "emlatracker.emlatracker.ext.fragment.InfoButton"
+                    },
+                    "NotesButton": {
+                      "header": "Notes",
+                      "width": "70px",
+                      "position": {
+                        "placement": "After"
+                      },
+                      "template": "emlatracker.emlatracker.ext.fragment.NotesButton"
                     }
                   },
                   "actions": {

@@ -1,0 +1,9 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
+	<Button
+		id="notesButton"
+		icon="sap-icon://notes"
+		type="Transparent"
+		press="handler.onOpenNotesDialog"
+		core:require="{ handler: 'emlatracker/emlatracker/ext/controller/NotesDialogController'}"
+		tooltip="View/Edit Notes" />
+</core:FragmentDefinition>
