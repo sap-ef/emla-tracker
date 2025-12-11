@@ -133,7 +133,7 @@ async function sessionSync(req) {
                   if (!sessionData.sessionDate) return false;
                   const sessionDate = new Date(sessionData.sessionDate);
                   const today = new Date(); today.setHours(0,0,0,0); sessionDate.setHours(0,0,0,0);
-                  return sessionDate < today;
+                  return sessionDate <= today;
                 })(),
                 finalCompletedFlag: updateData[check.field],
                 finalRejectedFlag: updateData[check.rejectionField]
@@ -207,8 +207,8 @@ async function checkSessionStatus(sessionId, logger) {
          data.sessionStatus_name.toLowerCase().includes("denied") ||
          data.sessionStatus_name.toLowerCase().includes("deny"));
       
-      // Check if sessionDate exists and is BEFORE today (only for non-rejected sessions)
-      // Sessions created today should NOT be automatically marked as completed
+      // Check if sessionDate exists and is on or before today (only for non-rejected sessions)
+      // Sessions completed today or in the past should be marked as completed
       let isDateCompleted = false;
       if (!isRejected && rawSessionDate) {
         const sessionDate = new Date(rawSessionDate);
@@ -217,8 +217,8 @@ async function checkSessionStatus(sessionId, logger) {
         today.setHours(0, 0, 0, 0);
         sessionDate.setHours(0, 0, 0, 0);
         
-        // Only mark as completed if session date is BEFORE today (not today or future)
-        isDateCompleted = sessionDate < today;
+        // Mark as completed if session date is today or before (not future)
+        isDateCompleted = sessionDate <= today;
       }
       
       const statusIncludesCompleted = data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed");

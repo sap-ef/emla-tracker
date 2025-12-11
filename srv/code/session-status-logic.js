@@ -192,14 +192,14 @@ async function checkSessionStatus(sessionId, logger) {
         today.setHours(0, 0, 0, 0);
         sessionDate.setHours(0, 0, 0, 0);
         
-        isDateCompleted = sessionDate < today;
+        isDateCompleted = sessionDate <= today;
       }
       
       const statusIncludesCompleted = data.sessionStatus_name && data.sessionStatus_name.toLowerCase().includes("completed");
       const completedByStatusAndDate = !isRejected && statusIncludesCompleted && isDateCompleted;
 
       const result = {
-        // require BOTH: status contains 'completed' AND sessionDate is before today (unless rejected)
+        // require BOTH: status contains 'completed' AND sessionDate is today or before (unless rejected)
         completed: completedByStatusAndDate,
         rejected: isRejected,
         status: data.sessionStatus_name || 'Unknown',
