@@ -12,9 +12,48 @@ module.exports = async function analyzeEngagement(request) {
 
   LOG.info(`INterval in days: ${request.data.internalInDays}`);
 
+  // Helper function to update customer record based on engagement task
+  async function updateCustomerFromEngagement(customerId, taskName, engagementDate, engagementStatus, db) {
+    try {
+      const { EMLACustomers } = db.entities("EMLATracker");
+      
+      // Find customer by customerNumber and emlaType
+      const customerRecord = await SELECT.one.from(EMLACustomers)
+        .where({ customerNumber: customerId, emlaType: 'Cloud ERP Private' });
+      
+      if (!customerRecord) {
+        LOG.warn(`Customer not found for customerId: ${customerId} with emlaType 'Cloud ERP Private'`);
+        return;
+      }
+
+      const updateData = {};
+      
+      // Map engagement task name to fields
+      if (taskName === 'SAP Build Foundation') {
+        // TP2
+        updateData.trackAppTP2Date = engagementDate;
+        updateData.trackAppTP2Status = engagementStatus;
+      } else if (taskName === 'SAP BTP Foundation') {
+        // TP1
+        updateData.trackAppDate = engagementDate;
+        updateData.trackAppStatus = engagementStatus;
+      }
+      
+      if (Object.keys(updateData).length > 0) {
+        await UPDATE(EMLACustomers)
+          .set(updateData)
+          .where({ ID: customerRecord.ID });
+        
+        LOG.info(`Updated customer ${customerId} with ${taskName} data`);
+      }
+    } catch (custError) {
+      LOG.warn(`Failed to update customer ${customerId}: ${custError.message}`);
+    }
+  }
+
   try {
     const db = await cds.connect.to("db");
-    const { AnalyzeEngagementProgress } = db.entities("EMLATracker");
+    const { AnalyzeEngagementProgress, EMLACustomers } = db.entities("EMLATracker");
 
     // Check destination availability
     let destinationAvailable = false;
@@ -101,6 +140,11 @@ module.exports = async function analyzeEngagement(request) {
                   newEngaement
                 );
                 inserted++;
+                
+                // Update corresponding EMLACustomers record based on engagement task type
+                if (a.customerId) {
+                  await updateCustomerFromEngagement(a.customerId, a.engagementTaskName, a.date, a.detailedStatusName, db);
+                }
               } else {
                 //update
                 console.log(
@@ -117,6 +161,11 @@ module.exports = async function analyzeEngagement(request) {
                 });
 
                 updated++;
+                
+                // Update corresponding EMLACustomers record based on engagement task type
+                if (a.customerId) {
+                  await updateCustomerFromEngagement(a.customerId, a.engagementTaskName, a.date, a.detailedStatusName, db);
+                }
               }
             } catch (error) {
               errors.push({
