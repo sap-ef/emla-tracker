@@ -863,22 +863,22 @@ module.exports = async function(request) {
                     const existing = existingIndex.get(compositeKey);
                     if (existing) {
                         // Determine if advisor fields need update
-                        const newBtpName = rec.btpOnbAdvNome && rec.btpOnbAdvNome.trim();
-                        const newBtpEmail = rec.btpOnbAdvEmail && rec.btpOnbAdvEmail.trim();
-                        const newErpName = rec.erpOnbAdvNome && rec.erpOnbAdvNome.trim();
-                        const newExternalID = rec.externalID && rec.externalID.trim();
+                        const newBtpName = rec.btpOnbAdvNome ? rec.btpOnbAdvNome.trim() : '';
+                        const newBtpEmail = rec.btpOnbAdvEmail ? rec.btpOnbAdvEmail.trim() : '';
+                        const newErpName = rec.erpOnbAdvNome ? rec.erpOnbAdvNome.trim() : '';
+                        const newExternalID = rec.externalID ? rec.externalID.trim() : '';
                         const diff = (
-                            (newBtpName && newBtpName !== (existing.btpOnbAdvNome || '').trim()) ||
-                            (newBtpEmail && newBtpEmail !== (existing.btpOnbAdvEmail || '').trim()) ||
-                            (newErpName && newErpName !== (existing.erpOnbAdvNome || '').trim()) ||
-                            (newExternalID && newExternalID !== (existing.externalID || '').trim())
+                            newBtpName !== (existing.btpOnbAdvNome || '').trim() ||
+                            newBtpEmail !== (existing.btpOnbAdvEmail || '').trim() ||
+                            newErpName !== (existing.erpOnbAdvNome || '').trim() ||
+                            newExternalID !== (existing.externalID || '').trim()
                         );
                         if (diff) {
                             const updateObj = {};
-                            if (newBtpName && newBtpName !== (existing.btpOnbAdvNome || '').trim()) updateObj.btpOnbAdvNome = newBtpName;
-                            if (newBtpEmail && newBtpEmail !== (existing.btpOnbAdvEmail || '').trim()) updateObj.btpOnbAdvEmail = newBtpEmail;
-                            if (newErpName && newErpName !== (existing.erpOnbAdvNome || '').trim()) updateObj.erpOnbAdvNome = newErpName;
-                            if (newExternalID && newExternalID !== (existing.externalID || '').trim()) updateObj.externalID = newExternalID;
+                            if (newBtpName !== (existing.btpOnbAdvNome || '').trim()) updateObj.btpOnbAdvNome = newBtpName;
+                            if (newBtpEmail !== (existing.btpOnbAdvEmail || '').trim()) updateObj.btpOnbAdvEmail = newBtpEmail;
+                            if (newErpName !== (existing.erpOnbAdvNome || '').trim()) updateObj.erpOnbAdvNome = newErpName;
+                            if (newExternalID !== (existing.externalID || '').trim()) updateObj.externalID = newExternalID;
                             try {
                                 await cds.run(UPDATE('EMLACustomers').set(updateObj).where({ ID: existing.ID }));
                                 updated++;
