@@ -162,8 +162,9 @@ module.exports = async function syncEMLAData(request) {
           if (n.country && n.country !== existing.country) delta.country = n.country;
           if (n.startDate && n.startDate !== existing.startDate) delta.startDate = n.startDate;
           if (erpAdvName && erpAdvName !== existing.erpOnbAdvNome) delta.erpOnbAdvNome = erpAdvName;
-          if (btpAdvName && btpAdvName !== existing.btpOnbAdvNome) delta.btpOnbAdvNome = btpAdvName;
-          if (btpAdvEmail && btpAdvEmail !== existing.btpOnbAdvEmail) delta.btpOnbAdvEmail = btpAdvEmail;
+          // FIX: Allow updates to BTP Advisor even if empty (changed from other person to empty or different person)
+          if ((btpAdvName || '') !== (existing.btpOnbAdvNome || '')) delta.btpOnbAdvNome = btpAdvName || '';
+          if ((btpAdvEmail || '') !== (existing.btpOnbAdvEmail || '')) delta.btpOnbAdvEmail = btpAdvEmail || '';
           if (n.externalID && n.externalID !== existing.externalID) delta.externalID = n.externalID;
 
           if (Object.keys(delta).length) {

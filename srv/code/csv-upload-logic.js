@@ -679,9 +679,7 @@ module.exports = async function(request) {
                 }
             } catch (e) {}
 
-            // If advisor fields are not meaningful (e.g., 'Yes'), clear them
-            if (!isMeaningfulCandidate(mappedRecord.btpOnbAdvNome)) mappedRecord.btpOnbAdvNome = '';
-            if (!isMeaningfulCandidate(mappedRecord.btpOnbAdvEmail)) mappedRecord.btpOnbAdvEmail = '';
+            // NOTE: Removed validation for BTP Advisor to allow all values including non-typical names
             // Heuristic: if name missing and email field holds a probable name (no '@', contains space/comma), treat it as name
             if (!mappedRecord.btpOnbAdvNome && mappedRecord.btpOnbAdvEmail) {
                 const possibleName = mappedRecord.btpOnbAdvEmail.trim();
@@ -755,9 +753,7 @@ module.exports = async function(request) {
                     const rowE = indexByEmail.get(rec.btpOnbAdvEmail.trim());
                     rec.btpOnbAdvNome = rowE.name || rowE.onbAdvisor || rec.btpOnbAdvNome || '';
                 }
-                // final cleanup
-                if (!isMeaningfulCandidate(rec.btpOnbAdvNome)) rec.btpOnbAdvNome = '';
-                if (!isMeaningfulCandidate(rec.btpOnbAdvEmail)) rec.btpOnbAdvEmail = '';
+                // NOTE: Removed validation cleanup for BTP Advisor to preserve all values
             }
             console.log('Bulk advisor enrichment complete. byName rows:', byName.length, 'byEmail rows:', byEmail.length);
         } catch (e) {
