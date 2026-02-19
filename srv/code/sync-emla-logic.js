@@ -124,12 +124,19 @@ module.exports = async function syncEMLAData(request) {
 
     // Advisor enrichment: if we only have userId, attempt to map to known advisor name/email from OnboardAdvisors
     let advisorTable = await SELECT.from('EMLATracker.OnboardAdvisors');
-    const advisorNameById = new Map();
-    const advisorEmailById = new Map();
+    const advisorNameByKey = new Map();
+    const advisorByEmail = new Map();
     for (const adv of advisorTable) {
-      // Assume onbAdvisor field might store userId or key
-      advisorNameById.set(adv.onbAdvisor, adv.name);
-      advisorEmailById.set(adv.onbAdvisor, adv.email);
+      // Index by onbAdvisor field (userId/key)
+      if (adv.onbAdvisor) {
+        const keyNorm = adv.onbAdvisor.toLowerCase();
+        advisorNameByKey.set(keyNorm, adv.name);
+      }
+      // ALSO index by email for direct email lookup from OData
+      if (adv.email) {
+        const emailNorm = adv.email.toLowerCase();
+        advisorByEmail.set(emailNorm, { name: adv.name, email: adv.email });
+      }
     }
 
     for (const n of normalized) {
@@ -143,13 +150,28 @@ module.exports = async function syncEMLAData(request) {
 
       // Derive advisor names
       const erpAdvName = n.erpUserId || existing?.erpOnbAdvNome || n.raw.erpOnbAdvNome || null;
-      let btpAdvName = n.btpUserId || existing?.btpOnbAdvNome || n.raw.btpOnbAdvNome || null;
-      let btpAdvEmail = n.raw.btpOnbAdvEmail || existing?.btpOnbAdvEmail || null;
+      // btpUserId from OData is the EMAIL, not the name
+      let btpAdvEmail = n.btpUserId || existing?.btpOnbAdvEmail || null;
+      let btpAdvName = existing?.btpOnbAdvNome || null;
 
-      // Enrich if only userId present (and no readable name) using OnboardAdvisors
-      if (n.btpUserId && (!btpAdvName || btpAdvName === n.btpUserId)) {
-        if (advisorNameById.has(n.btpUserId)) btpAdvName = advisorNameById.get(n.btpUserId);
-        if (advisorEmailById.has(n.btpUserId) && !btpAdvEmail) btpAdvEmail = advisorEmailById.get(n.btpUserId);
+      // Enrich advisor name from OnboardAdvisors table using email as lookup key
+      if (n.btpUserId) {
+        const btpUserIdNorm = n.btpUserId.toLowerCase();
+        // Try to find by email first (OData sends email in btpUserId field)
+        if (advisorByEmail.has(btpUserIdNorm)) {
+          const advisor = advisorByEmail.get(btpUserIdNorm);
+          btpAdvName = advisor.name;
+          btpAdvEmail = advisor.email;
+        }
+        // Fallback: try by onbAdvisor key
+        else if (advisorNameByKey.has(btpUserIdNorm)) {
+          btpAdvName = advisorNameByKey.get(btpUserIdNorm);
+        }
+      }
+
+      // DEBUG: Log ONLY when BTP Advisor CHANGED
+      if (existing && btpAdvName !== (existing.btpOnbAdvNome || '')) {
+        LOG.info(`[CHANGED] Customer ${n.customerNumber} (${n.customerName}): BTP Advisor "${existing.btpOnbAdvNome}" → "${btpAdvName}" (email: ${btpAdvEmail})`);
       }
 
       try {
@@ -162,9 +184,14 @@ module.exports = async function syncEMLAData(request) {
           if (n.country && n.country !== existing.country) delta.country = n.country;
           if (n.startDate && n.startDate !== existing.startDate) delta.startDate = n.startDate;
           if (erpAdvName && erpAdvName !== existing.erpOnbAdvNome) delta.erpOnbAdvNome = erpAdvName;
-          // FIX: Allow updates to BTP Advisor even if empty (changed from other person to empty or different person)
-          if ((btpAdvName || '') !== (existing.btpOnbAdvNome || '')) delta.btpOnbAdvNome = btpAdvName || '';
-          if ((btpAdvEmail || '') !== (existing.btpOnbAdvEmail || '')) delta.btpOnbAdvEmail = btpAdvEmail || '';
+          // FIX: Case-insensitive comparison for advisors + allow empty values to clear
+          const btpNameNorm = (btpAdvName || '').toLowerCase();
+          const btpNameExistingNorm = (existing.btpOnbAdvNome || '').toLowerCase();
+          const btpEmailNorm = (btpAdvEmail || '').toLowerCase();
+          const btpEmailExistingNorm = (existing.btpOnbAdvEmail || '').toLowerCase();
+          
+          if (btpNameNorm !== btpNameExistingNorm) delta.btpOnbAdvNome = btpAdvName || '';
+          if (btpEmailNorm !== btpEmailExistingNorm) delta.btpOnbAdvEmail = btpAdvEmail || '';
           if (n.externalID && n.externalID !== existing.externalID) delta.externalID = n.externalID;
 
           if (Object.keys(delta).length) {

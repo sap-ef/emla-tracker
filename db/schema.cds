@@ -7,40 +7,42 @@ using {managed} from '@sap/cds/common';
   emlaType
 ]
 entity EMLACustomers : managed {
-  key ID                     : UUID;
-      externalID             : String(40);
-      customerName           : String(250);
-      customerNumber         : String(20);
-      emlaType               : String(50);
-      region                 : String(25);
-      country                : String(25);
-      startDate              : Date;
-      erpOnbAdvNome          : String(100);
-      btpOnbAdvNome          : String(100);
-      btpOnbAdvEmail         : String(100);
-      status                 : String(100);
-      trackApp               : String(36);
-      trackAppTP2            : String(36);
-      trackAppSH             : String(36);
+  key ID                             : UUID;
+      externalID                     : String(40);
+      customerName                   : String(250);
+      customerNumber                 : String(20);
+      emlaType                       : String(50);
+      region                         : String(25);
+      country                        : String(25);
+      startDate                      : Date;
+      erpOnbAdvNome                  : String(100);
+      btpOnbAdvNome                  : String(100);
+      btpOnbAdvEmail                 : String(100);
+      status                         : String(100);
+      trackApp                       : String(36);
+      trackAppTP2                    : String(36);
+      trackAppSH                     : String(36);
 
-      trackAppStatus         : String(30);
-      trackAppTP2Status      : String(30);
-      trackAppSHStatus       : String(30);
+      isBTPOnboardingSessionRequired : Boolean default false;
 
-      trackAppDate           : Date;
-      trackAppTP2Date        : Date;
-      trackAppSHDate         : Date;
+      trackAppStatus                 : String(30);
+      trackAppTP2Status              : String(30);
+      trackAppSHStatus               : String(30);
 
-      isTrackAppCompleted    : Boolean default false;
-      isTrackAppTP2Completed : Boolean default false;
-      isTrackAppSHCompleted  : Boolean default false;
+      trackAppDate                   : Date;
+      trackAppTP2Date                : Date;
+      trackAppSHDate                 : Date;
 
-      isTrackAppRejected     : Boolean default false;
-      isTrackAppTP2Rejected  : Boolean default false;
-      isTrackAppSHRejected   : Boolean default false;
+      isTrackAppCompleted            : Boolean default false;
+      isTrackAppTP2Completed         : Boolean default false;
+      isTrackAppSHCompleted          : Boolean default false;
 
-      completedOn            : Date;
-      notes                  : String(5000);
+      isTrackAppRejected             : Boolean default false;
+      isTrackAppTP2Rejected          : Boolean default false;
+      isTrackAppSHRejected           : Boolean default false;
+
+      completedOn                    : Date;
+      notes                          : String(5000);
 }
 
 entity EMLATypeVH       as

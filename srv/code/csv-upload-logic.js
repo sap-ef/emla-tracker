@@ -738,19 +738,21 @@ module.exports = async function(request) {
             const indexByName = new Map();
             const indexByEmail = new Map();
             [...byName, ...byEmail].forEach(row => {
-                if (row.onbAdvisor) indexByName.set(row.onbAdvisor.trim(), row);
-                if (row.email) indexByEmail.set(row.email.trim(), row);
+                if (row.onbAdvisor) indexByName.set(row.onbAdvisor.trim().toLowerCase(), row);
+                if (row.email) indexByEmail.set(row.email.trim().toLowerCase(), row);
             });
             for (const rec of recordsToInsert2) {
-                // enrich based on advisor name
-                if (rec.btpOnbAdvNome && indexByName.has(rec.btpOnbAdvNome.trim())) {
-                    const row = indexByName.get(rec.btpOnbAdvNome.trim());
+                // enrich based on advisor name (case-insensitive lookup)
+                const btpNameLower = rec.btpOnbAdvNome ? rec.btpOnbAdvNome.trim().toLowerCase() : '';
+                if (btpNameLower && indexByName.has(btpNameLower)) {
+                    const row = indexByName.get(btpNameLower);
                     rec.btpOnbAdvEmail = row.email || rec.btpOnbAdvEmail || '';
                     rec.btpOnbAdvNome = row.name || row.onbAdvisor || rec.btpOnbAdvNome;
                 }
-                // if name missing but email present, enrich by email
-                if ((!rec.btpOnbAdvNome || !rec.btpOnbAdvNome.trim()) && rec.btpOnbAdvEmail && indexByEmail.has(rec.btpOnbAdvEmail.trim())) {
-                    const rowE = indexByEmail.get(rec.btpOnbAdvEmail.trim());
+                // if name missing but email present, enrich by email (case-insensitive lookup)
+                const btpEmailLower = rec.btpOnbAdvEmail ? rec.btpOnbAdvEmail.trim().toLowerCase() : '';
+                if ((!rec.btpOnbAdvNome || !rec.btpOnbAdvNome.trim()) && btpEmailLower && indexByEmail.has(btpEmailLower)) {
+                    const rowE = indexByEmail.get(btpEmailLower);
                     rec.btpOnbAdvNome = rowE.name || rowE.onbAdvisor || rec.btpOnbAdvNome || '';
                 }
                 // NOTE: Removed validation cleanup for BTP Advisor to preserve all values
@@ -858,22 +860,22 @@ module.exports = async function(request) {
                     const compositeKey = rec.customerNumber + '||' + rec.emlaType;
                     const existing = existingIndex.get(compositeKey);
                     if (existing) {
-                        // Determine if advisor fields need update
+                        // Determine if advisor fields need update (case-insensitive comparison)
                         const newBtpName = rec.btpOnbAdvNome ? rec.btpOnbAdvNome.trim() : '';
                         const newBtpEmail = rec.btpOnbAdvEmail ? rec.btpOnbAdvEmail.trim() : '';
                         const newErpName = rec.erpOnbAdvNome ? rec.erpOnbAdvNome.trim() : '';
                         const newExternalID = rec.externalID ? rec.externalID.trim() : '';
                         const diff = (
-                            newBtpName !== (existing.btpOnbAdvNome || '').trim() ||
-                            newBtpEmail !== (existing.btpOnbAdvEmail || '').trim() ||
-                            newErpName !== (existing.erpOnbAdvNome || '').trim() ||
+                            newBtpName.toLowerCase() !== (existing.btpOnbAdvNome || '').trim().toLowerCase() ||
+                            newBtpEmail.toLowerCase() !== (existing.btpOnbAdvEmail || '').trim().toLowerCase() ||
+                            newErpName.toLowerCase() !== (existing.erpOnbAdvNome || '').trim().toLowerCase() ||
                             newExternalID !== (existing.externalID || '').trim()
                         );
                         if (diff) {
                             const updateObj = {};
-                            if (newBtpName !== (existing.btpOnbAdvNome || '').trim()) updateObj.btpOnbAdvNome = newBtpName;
-                            if (newBtpEmail !== (existing.btpOnbAdvEmail || '').trim()) updateObj.btpOnbAdvEmail = newBtpEmail;
-                            if (newErpName !== (existing.erpOnbAdvNome || '').trim()) updateObj.erpOnbAdvNome = newErpName;
+                            if (newBtpName.toLowerCase() !== (existing.btpOnbAdvNome || '').trim().toLowerCase()) updateObj.btpOnbAdvNome = newBtpName;
+                            if (newBtpEmail.toLowerCase() !== (existing.btpOnbAdvEmail || '').trim().toLowerCase()) updateObj.btpOnbAdvEmail = newBtpEmail;
+                            if (newErpName.toLowerCase() !== (existing.erpOnbAdvNome || '').trim().toLowerCase()) updateObj.erpOnbAdvNome = newErpName;
                             if (newExternalID !== (existing.externalID || '').trim()) updateObj.externalID = newExternalID;
                             try {
                                 await cds.run(UPDATE('EMLACustomers').set(updateObj).where({ ID: existing.ID }));
