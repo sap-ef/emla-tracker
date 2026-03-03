@@ -117,6 +117,12 @@ function parseDateToISO(s) {
     if (!isNaN(dt.getTime())) return dt.toISOString().split('T')[0];
     return null;
 }
+// Helper: convert various string representations to boolean
+function parseBoolean(value) {
+    if (value === null || value === undefined || value === '') return false;
+    const s = (value + '').trim().toLowerCase();
+    return ['yes', 'true', '1', 'y', 'sim', 'verdadeiro'].includes(s);
+}
 
 // Heuristic: detect meaningless tokens that should not be treated as advisor names/emails
 function isMeaningfulCandidate(val) {
@@ -178,6 +184,9 @@ module.exports = async function(request) {
             'revenue start date': 'Revenue Start Date',
             'crt link': 'CRT Link',
             'cloud erp onboarding advisor': 'Cloud ERP Onboarding Advisor',
+            'btp onboarding session required': 'BTP Onboarding Session required',
+            'btp onboarding session req': 'BTP Onboarding Session required',
+            'btp session required': 'BTP Onboarding Session required',
             id: 'ID'
         }
 
@@ -292,6 +301,7 @@ module.exports = async function(request) {
                     'Cloud ERP Onboarding Advisor',
                     'Region',
                     'Contract Start Date',
+                    'BTP Onboarding Session required',
                     'ID'
                 ],
                 rename_map: {
@@ -304,7 +314,8 @@ module.exports = async function(request) {
                     'S/4HANA Finance ONB Advisor': 'erpOnbAdvNome',
                     Region: 'region',
                     Country: 'country',
-                    'Contract Start Date': 'startDate'
+                    'Contract Start Date': 'startDate',
+                    'BTP Onboarding Session required': 'isBTPOnboardingSessionRequired'
                 }
             },
             IntegrationSuite: {
@@ -707,6 +718,13 @@ module.exports = async function(request) {
                 mappedRecord.externalID = sanitizeFieldByType(mappedRecord.externalID, 'externalID');
             }
 
+            // Process isBTPOnboardingSessionRequired boolean field
+            if (mappedRecord.isBTPOnboardingSessionRequired !== undefined && mappedRecord.isBTPOnboardingSessionRequired !== null) {
+                mappedRecord.isBTPOnboardingSessionRequired = parseBoolean(mappedRecord.isBTPOnboardingSessionRequired);
+            } else {
+                mappedRecord.isBTPOnboardingSessionRequired = false; // default to false if not provided
+            }
+
             mappedRecord.ID = cds.utils.uuid();
             mappedRecord.status = 'Open';
             mappedRecord.csvRowNumber = csvRowNumber; // retain original CSV row number for downstream error logging
@@ -844,6 +862,29 @@ module.exports = async function(request) {
                     existingIndex.set(row.customerNumber + '||' + row.emlaType, row);
                 }
             }
+            
+            // Also fetch isBTPOnboardingSessionRequired for existing records for comparison
+            try {
+                if (uniqueKeys.length > 0) {
+                    const CHUNK_SIZE = 100;
+                    for (let i = 0; i < uniqueKeys.length; i += CHUNK_SIZE) {
+                        const chunk = uniqueKeys.slice(i, i + CHUNK_SIZE);
+                        const custNums = chunk.map(c => c.customerNumber);
+                        const rows = await cds.run(SELECT.from('EMLACustomers').columns('ID','customerNumber','emlaType','isBTPOnboardingSessionRequired').where({ customerNumber: { 'in': custNums } }));
+                        if (Array.isArray(rows)) {
+                            rows.forEach(row => {
+                                const key = row.customerNumber + '||' + (existingIndex.get(row.customerNumber + '||' + row.emlaType) || {}).emlaType || '';
+                                if (key !== '||') {
+                                    const existing = existingIndex.get(key);
+                                    if (existing) existing.isBTPOnboardingSessionRequired = row.isBTPOnboardingSessionRequired;
+                                }
+                            });
+                        }
+                    }
+                }
+            } catch(e) {
+                console.warn('[CSVUPLOAD] Failed to fetch isBTPOnboardingSessionRequired for existing records:', e.message);
+            }
 
             console.log(`[CSVUPLOAD] Advisor processing: ${advisorFiltered.length} candidate records. Existing matches found: ${existingIndex.size}`);
 
@@ -865,11 +906,13 @@ module.exports = async function(request) {
                         const newBtpEmail = rec.btpOnbAdvEmail ? rec.btpOnbAdvEmail.trim() : '';
                         const newErpName = rec.erpOnbAdvNome ? rec.erpOnbAdvNome.trim() : '';
                         const newExternalID = rec.externalID ? rec.externalID.trim() : '';
+                        const newIsBTPSession = rec.isBTPOnboardingSessionRequired || false;
                         const diff = (
                             newBtpName.toLowerCase() !== (existing.btpOnbAdvNome || '').trim().toLowerCase() ||
                             newBtpEmail.toLowerCase() !== (existing.btpOnbAdvEmail || '').trim().toLowerCase() ||
                             newErpName.toLowerCase() !== (existing.erpOnbAdvNome || '').trim().toLowerCase() ||
-                            newExternalID !== (existing.externalID || '').trim()
+                            newExternalID !== (existing.externalID || '').trim() ||
+                            newIsBTPSession !== (existing.isBTPOnboardingSessionRequired || false)
                         );
                         if (diff) {
                             const updateObj = {};
@@ -877,6 +920,7 @@ module.exports = async function(request) {
                             if (newBtpEmail.toLowerCase() !== (existing.btpOnbAdvEmail || '').trim().toLowerCase()) updateObj.btpOnbAdvEmail = newBtpEmail;
                             if (newErpName.toLowerCase() !== (existing.erpOnbAdvNome || '').trim().toLowerCase()) updateObj.erpOnbAdvNome = newErpName;
                             if (newExternalID !== (existing.externalID || '').trim()) updateObj.externalID = newExternalID;
+                            if (newIsBTPSession !== (existing.isBTPOnboardingSessionRequired || false)) updateObj.isBTPOnboardingSessionRequired = newIsBTPSession;
                             try {
                                 await cds.run(UPDATE('EMLACustomers').set(updateObj).where({ ID: existing.ID }));
                                 updated++;

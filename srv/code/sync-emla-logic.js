@@ -36,7 +36,7 @@ module.exports = async function syncEMLAData(request) {
     // Build OData query parameters manually (don't encode $ symbols)
     const queryString = [
       "$count=true",
-      "$select=HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,btpOnboardingAdvisor_userId,customerId,customerName,onboardingAdvisor_userId,startDate",
+      "$select=HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,btpOnboardingAdvisor_userId,customerId,customerName,onboardingAdvisor_userId,startDate,customerInterestedInBTPOnboarding_ID",
       "$expand=DraftAdministrativeData($select=DraftUUID,InProcessByUser),country($select=ID,name),emLAType($select=ID,name),region($select=ID,name)",
       "$filter=btpOnboardingAdvisor_userId ne null and (IsActiveEntity eq false or SiblingEntity/IsActiveEntity eq null)",
       "$skip=0",
@@ -87,6 +87,7 @@ module.exports = async function syncEMLAData(request) {
     const errors = [];
 
     // Build normalized view of incoming data first
+    const BTP_ONB_SESSION_REQUIRED_ID = "dcb04fe0-8070-4ed0-bbb9-429e88f6c91d";
     const normalized = externalData.map(r => {
       return {
         raw: r,
@@ -98,7 +99,8 @@ module.exports = async function syncEMLAData(request) {
         erpUserId: r.onboardingAdvisor_userId || null,
         btpUserId: r.btpOnboardingAdvisor_userId || null,
         startDate: r.startDate || null,
-        externalID: r.ID || null
+        externalID: r.ID || null,
+        isBTPOnboardingSessionRequired: r.customerInterestedInBTPOnboarding_ID === BTP_ONB_SESSION_REQUIRED_ID
       };
     });
 
@@ -193,6 +195,9 @@ module.exports = async function syncEMLAData(request) {
           if (btpNameNorm !== btpNameExistingNorm) delta.btpOnbAdvNome = btpAdvName || '';
           if (btpEmailNorm !== btpEmailExistingNorm) delta.btpOnbAdvEmail = btpAdvEmail || '';
           if (n.externalID && n.externalID !== existing.externalID) delta.externalID = n.externalID;
+          if (n.isBTPOnboardingSessionRequired !== undefined && n.isBTPOnboardingSessionRequired !== existing.isBTPOnboardingSessionRequired) {
+            delta.isBTPOnboardingSessionRequired = n.isBTPOnboardingSessionRequired;
+          }
 
           if (Object.keys(delta).length) {
             await UPDATE(EMLACustomers).set(delta).where({ ID: existing.ID });
@@ -211,6 +216,7 @@ module.exports = async function syncEMLAData(request) {
             btpOnbAdvNome: btpAdvName,
             btpOnbAdvEmail: btpAdvEmail,
             externalID: n.externalID,
+            isBTPOnboardingSessionRequired: n.isBTPOnboardingSessionRequired,
             status: 'Not Started'
           });
           inserted++;
