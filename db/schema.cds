@@ -23,6 +23,10 @@ entity EMLACustomers : managed {
       trackAppTP2                    : String(36);
       trackAppSH                     : String(36);
 
+      productList                    : String(150);
+      productName                    : String(50);
+      productSKU                     : String(12);
+
       isBTPOnboardingSessionRequired : Boolean default false;
 
       trackAppStatus                 : String(30);

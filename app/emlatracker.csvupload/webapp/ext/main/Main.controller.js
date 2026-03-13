@@ -7,30 +7,57 @@ sap.ui.define([
   return Controller.extend("emlatracker.csvupload.ext.main.Main", {
     onInit: function () {
       this._selectedFile = null;
+      this._detectedCsvType = null;
       this._updateUploadButtonState();
+    },
+
+    // Detect csvType from filename: strip trailing (1),(2)... then match known prefixes
+    _detectTypeFromFilename: function (name) {
+      var clean = (name || '').replace(/\s*\(\d+\)\s*(\.[^.]+)?$/, '$1').trim();
+      var lower = clean.toLowerCase();
+      if (lower.indexOf('sap integration suite') !== -1) return 'integration';
+      if (lower.indexOf('sap business suite') !== -1) return 'public';
+      return null;
     },
 
     onFileChange: function (oEvent) {
       var oFile = oEvent.getParameter("files") && oEvent.getParameter("files")[0];
       this._selectedFile = oFile || null;
-      if (oFile) this._showMessage("File selected: " + oFile.name, "Information");
+      if (oFile) {
+        var detectedType = this._detectTypeFromFilename(oFile.name);
+        if (detectedType) {
+          this._detectedCsvType = detectedType;
+          var rb = this.byId("csvTypeRadio");
+          var autoIdx = detectedType === 'integration' ? 0 : 1;
+          if (rb && typeof rb.setSelectedIndex === 'function') rb.setSelectedIndex(autoIdx);
+          var label = detectedType === 'integration' ? 'Integration Suite' : 'Public Cloud ERP';
+          this._showMessage('File selected: ' + oFile.name + '\nType auto-detected: ' + label, 'Information');
+        } else {
+          this._detectedCsvType = null;
+          var rb = this.byId("csvTypeRadio");
+          if (rb && typeof rb.setSelectedIndex === 'function') rb.setSelectedIndex(-1);
+          this._showMessage(
+            'File not recognized: "' + oFile.name + '".\n' +
+            'Expected file names starting with:\n' +
+            '  • "SAP Integration Suite Assignment List..." (Integration Suite)\n' +
+            '  • "SAP Business Suite Assignment List..." (Public Cloud ERP)\n' +
+            'Please select the correct file.',
+            'Error'
+          );
+          this._selectedFile = null;
+        }
+      }
       this._updateUploadButtonState();
     },
 
-    onCsvTypeChange: function () { this._updateUploadButtonState(); },
-
     _updateUploadButtonState: function () {
-      var rb = this.byId("csvTypeRadio");
-      var hasType = rb && typeof rb.getSelectedIndex === "function" && rb.getSelectedIndex() !== -1;
-      this.byId("uploadButton").setEnabled(!!this._selectedFile && hasType);
+      this.byId("uploadButton").setEnabled(!!this._selectedFile);
     },
 
     onUploadPress: function () {
       if (!this._selectedFile) { this._showMessage("Please select a CSV file first.", "Error"); return; }
-      var rb = this.byId("csvTypeRadio");
-      var idx = rb && typeof rb.getSelectedIndex === "function" ? rb.getSelectedIndex() : -1;
-      var csvType = idx === 0 ? "integration" : idx === 1 ? "public" : null;
-      if (!csvType) { this._showMessage("Please choose a CSV type", "Error"); return; }
+      var csvType = this._detectedCsvType;
+      if (!csvType) { this._showMessage("CSV type could not be detected from the filename. Please select a valid file.", "Error"); return; }
       var that = this; var reader = new FileReader();
       reader.onload = function (e) { that.byId("uploadButton").setEnabled(false); that._uploadViaHTTP(e.target.result, csvType); };
       reader.onerror = function (e) { console.error("File read error", e); that._showMessage("Failed to read file", "Error"); };

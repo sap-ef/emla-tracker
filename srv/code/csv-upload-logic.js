@@ -93,7 +93,10 @@ function sanitizeFieldByType(value, fieldName) {
         'btpOnbAdvNome': 100,
         'btpOnbAdvEmail': 100,
         'status': 100,
-        'externalID': 40
+        'externalID': 40,
+        'productList': 150,
+        'productName': 50,
+        'productSKU': 12
     };
     
     const maxLength = fieldLimits[fieldName] || 5000; // Back to original 5000
@@ -122,6 +125,46 @@ function parseBoolean(value) {
     if (value === null || value === undefined || value === '') return false;
     const s = (value + '').trim().toLowerCase();
     return ['yes', 'true', '1', 'y', 'sim', 'verdadeiro'].includes(s);
+}
+
+// Helper: extract productSku and productName from the raw productList CSV value.
+// Handles formats such as:
+//   "New Products: 8008411_SAP Integration Suite, standard edition_(New Business)_New SKU | Existing Products: none"
+//   "8008411_SAP Integration Suite, standard edition_(New Business)"
+//   "[New Public Cloud/SCM Customer] EmLA SKUs: 8019551_...; 8019813_... | [Existing ...] EmLA SKUs: none"
+function parseProductList(productListRaw) {
+    if (!productListRaw) return { productSku: '', productName: '' };
+
+    let raw = productListRaw.toString().trim();
+
+    // Find the first SKU-like token anywhere in the full string (≥5 digits followed by '_').
+    // This handles cases where the "New" section says "none" and the SKU is in the "Existing" section,
+    // e.g.: "[New ...] EmLA SKUs: none | [Existing ...] EmLA SKUs: 8019551_SAP S/4HANA..."
+    const skuMatch = raw.search(/\d{5,}_/);
+    if (skuMatch === -1) return { productSku: '', productName: '' };
+
+    raw = raw.substring(skuMatch);
+
+    // Trim at the first ';' or ' | ' that comes after the SKU (multi-entry separators)
+    const semiSep = raw.indexOf(';');
+    const pipeSep = raw.indexOf(' | ');
+    let end = raw.length;
+    if (semiSep !== -1 && semiSep < end) end = semiSep;
+    if (pipeSep !== -1 && pipeSep < end) end = pipeSep;
+    raw = raw.substring(0, end).trim();
+
+    // raw is now like "8008411_SAP Integration Suite, standard edition_(New Business)_New SKU"
+    const firstUnderscore = raw.indexOf('_');
+    if (firstUnderscore === -1) return { productSku: raw.trim(), productName: '' };
+
+    const productSku = raw.substring(0, firstUnderscore).trim();
+    const rest = raw.substring(firstUnderscore + 1);
+
+    // Product name ends just before the first "_(" pattern
+    const nameEnd = rest.indexOf('_(');
+    const productName = nameEnd !== -1 ? rest.substring(0, nameEnd).trim() : rest.trim();
+
+    return { productSku, productName };
 }
 
 // Heuristic: detect meaningless tokens that should not be treated as advisor names/emails
@@ -243,6 +286,28 @@ module.exports = async function(request) {
             return;
         }
 
+        // Validate that the CSV headers match the declared csvType to prevent cross-type imports
+        if (csvType) {
+            const actualHeaders = ((parsed.meta && parsed.meta.fields) || []).map(h => normalizeHeader(h));
+            const hasHeader = (...names) => names.some(n => actualHeaders.includes(normalizeHeader(n)));
+
+            // Signature headers that strongly indicate each type
+            const looksLikePubERP = hasHeader('Customer ID', 'Cloud ERP Onboarding Advisor', 'Contract Start Date', 'BTP Onboarding Session required');
+            const looksLikeIntSuite = hasHeader('Account Name', 'BTP ONB Advisor', 'Revenue Start Date', 'CRT Link');
+
+            const selectedPub = csvType === 'public' || csvType === 'PubCloudERP';
+            const selectedInt = csvType === 'integration' || csvType === 'IntegrationSuite';
+
+            if (selectedPub && looksLikeIntSuite && !looksLikePubERP) {
+                request.error(400, 'CSV type mismatch: you selected "Public Cloud ERP" but the file looks like an "Integration Suite" CSV. Please select the correct type and try again.');
+                return;
+            }
+            if (selectedInt && looksLikePubERP && !looksLikeIntSuite) {
+                request.error(400, 'CSV type mismatch: you selected "Integration Suite" but the file looks like a "Public Cloud ERP" CSV. Please select the correct type and try again.');
+                return;
+            }
+        }
+
         // Mapping from various Integration Suite header names to our expected model fields
         const headerMap = {
             'account name': 'customerName',
@@ -253,8 +318,8 @@ module.exports = async function(request) {
             'erp customer number': 'customerNumber',
             'customer id': 'customerNumber',
             'customer number': 'customerNumber',
-            'product list': 'emlaType',
-            'productlist': 'emlaType',
+            'product list': 'productList',
+            'productlist': 'productList',
             'emla staffing for btp': 'btpOnbAdvNome',
             'btp onb advisor': 'btpOnbAdvNome',
             'btp onb advisor email': 'btpOnbAdvEmail',
@@ -725,6 +790,16 @@ module.exports = async function(request) {
                 mappedRecord.isBTPOnboardingSessionRequired = false; // default to false if not provided
             }
 
+            // Derive productSKU and productName from raw productList value
+            if (mappedRecord.productList) {
+                const parsedProd = parseProductList(mappedRecord.productList);
+                if (!mappedRecord.productSKU) mappedRecord.productSKU = parsedProd.productSku;
+                if (!mappedRecord.productName) mappedRecord.productName = parsedProd.productName;
+            }
+            mappedRecord.productList = sanitizeFieldByType(mappedRecord.productList || '', 'productList');
+            mappedRecord.productName = sanitizeFieldByType(mappedRecord.productName || '', 'productName');
+            mappedRecord.productSKU = sanitizeFieldByType(mappedRecord.productSKU || '', 'productSKU');
+
             mappedRecord.ID = cds.utils.uuid();
             mappedRecord.status = 'Open';
             mappedRecord.csvRowNumber = csvRowNumber; // retain original CSV row number for downstream error logging
@@ -848,7 +923,7 @@ module.exports = async function(request) {
                         const chunk = uniqueKeys.slice(i, i + CHUNK_SIZE);
                         const custNums = chunk.map(c => c.customerNumber);
                         // Fetch by customerNumber first, then filter by emlaType in JS (safer if DB can't handle composite IN easily)
-                        const rows = await cds.run(SELECT.from('EMLACustomers').columns('ID','customerNumber','emlaType','erpOnbAdvNome','btpOnbAdvNome','btpOnbAdvEmail').where({ customerNumber: { 'in': custNums } }));
+                        const rows = await cds.run(SELECT.from('EMLACustomers').columns('ID','customerNumber','emlaType','erpOnbAdvNome','btpOnbAdvNome','btpOnbAdvEmail','productList','productName','productSKU').where({ customerNumber: { 'in': custNums } }));
                         if (Array.isArray(rows)) existingRows.push(...rows);
                     }
                 }
@@ -907,12 +982,18 @@ module.exports = async function(request) {
                         const newErpName = rec.erpOnbAdvNome ? rec.erpOnbAdvNome.trim() : '';
                         const newExternalID = rec.externalID ? rec.externalID.trim() : '';
                         const newIsBTPSession = rec.isBTPOnboardingSessionRequired || false;
+                        const newProductList = rec.productList ? rec.productList.trim() : '';
+                        const newProductName = rec.productName ? rec.productName.trim() : '';
+                        const newProductSKU = rec.productSKU ? rec.productSKU.trim() : '';
                         const diff = (
                             newBtpName.toLowerCase() !== (existing.btpOnbAdvNome || '').trim().toLowerCase() ||
                             newBtpEmail.toLowerCase() !== (existing.btpOnbAdvEmail || '').trim().toLowerCase() ||
                             newErpName.toLowerCase() !== (existing.erpOnbAdvNome || '').trim().toLowerCase() ||
                             newExternalID !== (existing.externalID || '').trim() ||
-                            newIsBTPSession !== (existing.isBTPOnboardingSessionRequired || false)
+                            newIsBTPSession !== (existing.isBTPOnboardingSessionRequired || false) ||
+                            newProductList !== (existing.productList || '').trim() ||
+                            newProductName !== (existing.productName || '').trim() ||
+                            newProductSKU !== (existing.productSKU || '').trim()
                         );
                         if (diff) {
                             const updateObj = {};
@@ -921,6 +1002,9 @@ module.exports = async function(request) {
                             if (newErpName.toLowerCase() !== (existing.erpOnbAdvNome || '').trim().toLowerCase()) updateObj.erpOnbAdvNome = newErpName;
                             if (newExternalID !== (existing.externalID || '').trim()) updateObj.externalID = newExternalID;
                             if (newIsBTPSession !== (existing.isBTPOnboardingSessionRequired || false)) updateObj.isBTPOnboardingSessionRequired = newIsBTPSession;
+                            if (newProductList !== (existing.productList || '').trim()) updateObj.productList = newProductList;
+                            if (newProductName !== (existing.productName || '').trim()) updateObj.productName = newProductName;
+                            if (newProductSKU !== (existing.productSKU || '').trim()) updateObj.productSKU = newProductSKU;
                             try {
                                 await cds.run(UPDATE('EMLACustomers').set(updateObj).where({ ID: existing.ID }));
                                 updated++;

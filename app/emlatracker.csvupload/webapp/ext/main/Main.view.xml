@@ -22,14 +22,6 @@
                             <VBox id="optionsContainer" class="sapUiTinyMarginTop">
                                 <Label id="configLabel" text="CSV Configuration:" class="sapUiTinyMarginBottom"/>
                                 
-                                <HBox id="csvTypeContainer" class="sapUiTinyMarginBottom">
-                                    <Label id="csvTypeLabel" text="CSV Type:" class="sapUiTinyMarginEnd" required="true"/>
-                                    <RadioButtonGroup id="csvTypeRadio" select="onCsvTypeChange">
-                                        <RadioButton id="rbIntegration" text="Integration Suite" />
-                                        <RadioButton id="rbPublic" text="Public ERP" />
-                                    </RadioButtonGroup>
-                                </HBox>
-                                
                                 <HBox id="delimiterContainer" class="sapUiTinyMarginBottom">
                                     <Label id="delimiterLabel" text="Delimiter:" class="sapUiTinyMarginEnd"/>
                                     <Select id="delimiterSelect" selectedKey="," width="100px">

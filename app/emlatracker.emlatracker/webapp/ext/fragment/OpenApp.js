@@ -11,10 +11,10 @@ sap.ui.define(
           "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb?sap-ui-version=1.141.3&sap-iframe-params=sap-ui-version#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
           // "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
 
-        if (window.location.hostname.includes("movetosap-dev2")) {
-          console.log("movetosap-dev2 found in hostname");
+        if (window.location.hostname.includes("move2sap-onb")) {
+          console.log("move2sap-onb found in hostname");
           trackApp_url =
-            "https://movetosap-dev2.launchpad.cfapps.br10.hana.ondemand.com/site?sap-ui-version=1.141.3&sap-iframe-params=sap-ui-version&siteId=fe90bf68-d6c5-48ef-8c11-9fc6924d1e6e#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)";
+            "https://move2sap-onb.launchpad.cfapps.br10.hana.ondemand.com/site/onbdev#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)";
         }
 
         // 1. Get the context from the button
