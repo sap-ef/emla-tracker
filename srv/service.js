@@ -3,9 +3,7 @@
  * @version(2.0)
  */
 const LCAPApplicationService = require("@sap/low-code-event-handler");
-const onbtrackapp_Logic = require("./code/onbtrackapp-logic");
-const onbtrackapptp2_Logic = require("./code/onbtrackapptp2-logic");
-const onbtrackappsh_Logic = require("./code/onbtrackappsh-logic");
+const { handleTrackApp } = require("./code/onbtrackapp-common");
 const emlacustomers_Logic = require("./code/emlacustomers-logic");
 const csvUpload_Logic = require("./code/csv-upload-logic");
 const syncEmla_Logic = require("./code/sync-emla-logic");
@@ -21,15 +19,15 @@ class EMLATrackerService extends LCAPApplicationService {
     });
 
     this.on("onbTrackApp", async (request) => {
-      return onbtrackapp_Logic(request);
+      return handleTrackApp(request, "trackApp");
     });
 
     this.on("onbTrackAppTP2", async (request) => {
-      return onbtrackapptp2_Logic(request);
+      return handleTrackApp(request, "trackAppTP2");
     });
 
     this.on("onbTrackAppSH", async (request) => {
-      return onbtrackappsh_Logic(request);
+      return handleTrackApp(request, "trackAppSH");
     });
 
     this.on("setCompleted", "EMLACustomers", async (request) => {
