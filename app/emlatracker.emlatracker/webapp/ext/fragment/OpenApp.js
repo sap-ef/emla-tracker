@@ -14,7 +14,7 @@ sap.ui.define(
         if (window.location.hostname.includes("move2sap-onb")) {
           console.log("move2sap-onb found in hostname");
           trackApp_url =
-            "https://move2sap-onb.launchpad.cfapps.br10.hana.ondemand.com/site/onbdev#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)";
+            "https://move2sap-onb.launchpad.cfapps.br10.hana.ondemand.com/site/onbdev#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
         }
 
         // 1. Get the context from the button
