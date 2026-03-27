@@ -1,0 +1,50 @@
+table,field,description
+EMLACustomers,ID,Unique identifier for each customer record. Auto-generated primary key.
+EMLACustomers,externalID,External system identifier for customer synchronization (e.g. from CRM or ERP system).
+EMLACustomers,customerName,Full legal or business name of the customer organization.
+EMLACustomers,customerNumber,Unique customer identification number in the enterprise system. Used in unique constraint with emlaType.
+EMLACustomers,emlaType,"Type/category of EMLA engagement (e.g. ""RISE with SAP"", ""GROW with SAP""). Part of unique constraint with customerNumber."
+EMLACustomers,region,"Geographic region for the customer (e.g. ""EMEA"", ""Americas"", ""APJ"")."
+EMLACustomers,country,Country code or name where the customer is located.
+EMLACustomers,startDate,Engagement start date or contract effective date.
+EMLACustomers,erpOnbAdvNome,Name of the ERP Onboarding Advisor assigned to this customer.
+EMLACustomers,btpOnbAdvNome,Name of the BTP (Business Technology Platform) Onboarding Advisor.
+EMLACustomers,btpOnbAdvEmail,Email address of the BTP Onboarding Advisor. Used for value help and notifications.
+EMLACustomers,status,"Overall engagement status (e.g. ""In Progress"", ""Completed"", ""On Hold"", ""Cancelled"")."
+EMLACustomers,trackApp,Session ID/reference for the primary TrackApp onboarding session (typically UUID format).
+EMLACustomers,trackAppTP2,Session ID/reference for the TrackApp TP2 (Technical Platform 2) session.
+EMLACustomers,trackAppSH,Session ID/reference for the TrackApp Success Hub (SH) session.
+EMLACustomers,productList,Comma-separated list of product codes included in the EMLA agreement.
+EMLACustomers,productName,Primary product name associated with this engagement.
+EMLACustomers,productSKU,Stock Keeping Unit identifier for the main product.
+EMLACustomers,isBTPOnboardingSessionRequired,Flag indicating whether BTP onboarding sessions are mandatory for this customer.
+EMLACustomers,trackAppStatus,"Current status of the primary TrackApp session (e.g. ""Scheduled"", ""In Progress"", ""Completed"", ""Rejected"")."
+EMLACustomers,trackAppTP2Status,Current status of the TP2 session.
+EMLACustomers,trackAppSHStatus,Current status of the Success Hub session.
+EMLACustomers,trackAppDate,Date when the primary TrackApp session was/is scheduled.
+EMLACustomers,trackAppTP2Date,Date when the TP2 session was/is scheduled.
+EMLACustomers,trackAppSHDate,Date when the Success Hub session was/is scheduled.
+EMLACustomers,isTrackAppCompleted,Indicates whether the primary TrackApp session has been successfully completed.
+EMLACustomers,isTrackAppTP2Completed,Completion flag for TP2 session.
+EMLACustomers,isTrackAppSHCompleted,Completion flag for Success Hub session.
+EMLACustomers,isTrackAppRejected,Indicates whether the primary TrackApp session was rejected or cancelled.
+EMLACustomers,isTrackAppTP2Rejected,Rejection flag for TP2 session.
+EMLACustomers,isTrackAppSHRejected,Rejection flag for Success Hub session.
+EMLACustomers,completedOn,"Date when the entire onboarding process was completed. Set when status changes to ""Completed""."
+EMLACustomers,notes,"Free-text field for additional notes, comments, or special instructions related to the customer engagement."
+EMLACustomers,createdAt,Timestamp when the record was created (inherited from managed aspect).
+EMLACustomers,createdBy,User ID of the person who created the record (inherited from managed aspect).
+EMLACustomers,modifiedAt,Timestamp of the last modification (inherited from managed aspect).
+EMLACustomers,modifiedBy,User ID of the person who last modified the record (inherited from managed aspect).
+OnboardAdvisors,onbAdvisor,Unique identifier or username for the onboarding advisor. Primary key.
+OnboardAdvisors,name,Full name of the onboarding advisor.
+OnboardAdvisors,email,Email address for the advisor. Used for notifications and contact.
+AnalyzeEngagementProgress,ID,Unique identifier for each progress record.
+AnalyzeEngagementProgress,btpOnboardingAdvisor_userId,User ID of the BTP onboarding advisor responsible for this engagement task.
+AnalyzeEngagementProgress,status,High-level status code for the engagement task.
+AnalyzeEngagementProgress,detailedStatusName,Human-readable detailed status description providing more context.
+AnalyzeEngagementProgress,engagementTaskName,Name/description of the specific engagement task or milestone being tracked.
+AnalyzeEngagementProgress,customerId,Reference to the customer (may link to EMLACustomers.externalID or customerNumber).
+AnalyzeEngagementProgress,date,"Date associated with this progress entry (e.g. task completion date, status change date)."
+EMLATypeVH,emlaType,Unique EMLA type value from EMLACustomers. Derived entity for value help.
+BTPOnbAdvEmailVH,btpOnbAdvEmail,Unique BTP advisor email from EMLACustomers. Derived entity for value help.

@@ -1,0 +1,48 @@
+HANA_TABLE,HANA_COLUMN,DATA_TYPE,LENGTH,NULLABLE,DEFAULT_VALUE,DESCRIPTION
+EMLATracker_EMLACustomers,ID,NVARCHAR,36,NOT NULL,,Unique identifier for each customer record. Auto-generated primary key.
+EMLATracker_EMLACustomers,externalID,NVARCHAR,40,NULL,,External system identifier for customer synchronization (e.g. from CRM or ERP system).
+EMLATracker_EMLACustomers,customerName,NVARCHAR,250,NULL,,Full legal or business name of the customer organization.
+EMLATracker_EMLACustomers,customerNumber,NVARCHAR,20,NULL,,Unique customer identification number in the enterprise system. Used in unique constraint with emlaType.
+EMLATracker_EMLACustomers,emlaType,NVARCHAR,50,NULL,,"Type/category of EMLA engagement (e.g. ""RISE with SAP"", ""GROW with SAP""). Part of unique constraint with customerNumber."
+EMLATracker_EMLACustomers,region,NVARCHAR,25,NULL,,"Geographic region for the customer (e.g. ""EMEA"", ""Americas"", ""APJ"")."
+EMLATracker_EMLACustomers,country,NVARCHAR,25,NULL,,Country code or name where the customer is located.
+EMLATracker_EMLACustomers,startDate,DATE,,NULL,,Engagement start date or contract effective date.
+EMLATracker_EMLACustomers,erpOnbAdvNome,NVARCHAR,100,NULL,,Name of the ERP Onboarding Advisor assigned to this customer.
+EMLATracker_EMLACustomers,btpOnbAdvNome,NVARCHAR,100,NULL,,Name of the BTP (Business Technology Platform) Onboarding Advisor.
+EMLATracker_EMLACustomers,btpOnbAdvEmail,NVARCHAR,100,NULL,,Email address of the BTP Onboarding Advisor. Used for value help and notifications.
+EMLATracker_EMLACustomers,status,NVARCHAR,100,NULL,,"Overall engagement status (e.g. ""In Progress"", ""Completed"", ""On Hold"", ""Cancelled"")."
+EMLATracker_EMLACustomers,trackApp,NVARCHAR,36,NULL,,Session ID/reference for the primary TrackApp onboarding session (typically UUID format).
+EMLATracker_EMLACustomers,trackAppTP2,NVARCHAR,36,NULL,,Session ID/reference for the TrackApp TP2 (Technical Platform 2) session.
+EMLATracker_EMLACustomers,trackAppSH,NVARCHAR,36,NULL,,Session ID/reference for the TrackApp Success Hub (SH) session.
+EMLATracker_EMLACustomers,productList,NVARCHAR,150,NULL,,Comma-separated list of product codes included in the EMLA agreement.
+EMLATracker_EMLACustomers,productName,NVARCHAR,50,NULL,,Primary product name associated with this engagement.
+EMLATracker_EMLACustomers,productSKU,NVARCHAR,12,NULL,,Stock Keeping Unit identifier for the main product.
+EMLATracker_EMLACustomers,isBTPOnboardingSessionRequired,BOOLEAN,,NULL,FALSE,Flag indicating whether BTP onboarding sessions are mandatory for this customer.
+EMLATracker_EMLACustomers,trackAppStatus,NVARCHAR,30,NULL,,"Current status of the primary TrackApp session (e.g. ""Scheduled"", ""In Progress"", ""Completed"", ""Rejected"")."
+EMLATracker_EMLACustomers,trackAppTP2Status,NVARCHAR,30,NULL,,Current status of the TP2 session.
+EMLATracker_EMLACustomers,trackAppSHStatus,NVARCHAR,30,NULL,,Current status of the Success Hub session.
+EMLATracker_EMLACustomers,trackAppDate,DATE,,NULL,,Date when the primary TrackApp session was/is scheduled.
+EMLATracker_EMLACustomers,trackAppTP2Date,DATE,,NULL,,Date when the TP2 session was/is scheduled.
+EMLATracker_EMLACustomers,trackAppSHDate,DATE,,NULL,,Date when the Success Hub session was/is scheduled.
+EMLATracker_EMLACustomers,isTrackAppCompleted,BOOLEAN,,NULL,FALSE,Indicates whether the primary TrackApp session has been successfully completed.
+EMLATracker_EMLACustomers,isTrackAppTP2Completed,BOOLEAN,,NULL,FALSE,Completion flag for TP2 session.
+EMLATracker_EMLACustomers,isTrackAppSHCompleted,BOOLEAN,,NULL,FALSE,Completion flag for Success Hub session.
+EMLATracker_EMLACustomers,isTrackAppRejected,BOOLEAN,,NULL,FALSE,Indicates whether the primary TrackApp session was rejected or cancelled.
+EMLATracker_EMLACustomers,isTrackAppTP2Rejected,BOOLEAN,,NULL,FALSE,Rejection flag for TP2 session.
+EMLATracker_EMLACustomers,isTrackAppSHRejected,BOOLEAN,,NULL,FALSE,Rejection flag for Success Hub session.
+EMLATracker_EMLACustomers,completedOn,DATE,,NULL,,"Date when the entire onboarding process was completed. Set when status changes to ""Completed""."
+EMLATracker_EMLACustomers,notes,NVARCHAR,5000,NULL,,"Free-text field for additional notes, comments, or special instructions related to the customer engagement."
+EMLATracker_EMLACustomers,createdAt,TIMESTAMP,,NULL,,Timestamp when the record was created (inherited from managed aspect).
+EMLATracker_EMLACustomers,createdBy,NVARCHAR,255,NULL,,User ID of the person who created the record (inherited from managed aspect).
+EMLATracker_EMLACustomers,modifiedAt,TIMESTAMP,,NULL,,Timestamp of the last modification (inherited from managed aspect).
+EMLATracker_EMLACustomers,modifiedBy,NVARCHAR,255,NULL,,User ID of the person who last modified the record (inherited from managed aspect).
+EMLATracker_OnboardAdvisors,onbAdvisor,NVARCHAR,5000,NOT NULL,,Unique identifier or username for the onboarding advisor. Primary key.
+EMLATracker_OnboardAdvisors,name,NVARCHAR,5000,NULL,,Full name of the onboarding advisor.
+EMLATracker_OnboardAdvisors,email,NVARCHAR,5000,NULL,,Email address for the advisor. Used for notifications and contact.
+EMLATracker_AnalyzeEngagementProgress,ID,NVARCHAR,36,NOT NULL,,Unique identifier for each progress record.
+EMLATracker_AnalyzeEngagementProgress,btpOnboardingAdvisor_userId,NVARCHAR,5000,NULL,,User ID of the BTP onboarding advisor responsible for this engagement task.
+EMLATracker_AnalyzeEngagementProgress,status,NVARCHAR,5000,NULL,,High-level status code for the engagement task.
+EMLATracker_AnalyzeEngagementProgress,detailedStatusName,NVARCHAR,5000,NULL,,Human-readable detailed status description providing more context.
+EMLATracker_AnalyzeEngagementProgress,engagementTaskName,NVARCHAR,5000,NULL,,Name/description of the specific engagement task or milestone being tracked.
+EMLATracker_AnalyzeEngagementProgress,customerId,NVARCHAR,5000,NULL,,Reference to the customer (may link to EMLACustomers.externalID or customerNumber).
+EMLATracker_AnalyzeEngagementProgress,DATE,DATE,,NULL,,"Date associated with this progress entry (e.g. task completion date, status change date). Note: Column name is quoted in HANA as ""DATE"" because it's a reserved keyword."
