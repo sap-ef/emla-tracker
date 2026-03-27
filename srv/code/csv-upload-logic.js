@@ -741,7 +741,7 @@ module.exports = async function(request) {
 
             if (!mappedRecord.customerName || !mappedRecord.customerNumber || !mappedRecord.emlaType) {
                 validationErrorCount++;
-                errors2.push({ row: csvRowNumber, reason: 'Missing required fields (customerName, customerNumber, emlaType)' });
+                errors2.push({ row: csvRowNumber, customerNumber: mappedRecord.customerNumber || '', customerName: mappedRecord.customerName || '', reason: 'Missing required fields (customerName, customerNumber, emlaType)' });
                 failedRawRows2.push(rowObj);
                 continue;
             }
@@ -873,14 +873,14 @@ module.exports = async function(request) {
                     const hasMatchName = advisorNameMap[initName.toLowerCase()] || advisorKeyMap[initName.toLowerCase()] || advisorEmailMap[initName.toLowerCase()] || false;
                     if (!hasMatchName) {
                         advisorNotFoundCount++;
-                        errors2.push({ row: rec.csvRowNumber, reason: `Onboarding advisor (name) not found: ${initName}` });
+                        errors2.push({ row: rec.csvRowNumber, customerNumber: rec.customerNumber || '', customerName: rec.customerName || '', reason: `Onboarding advisor (name) not found: ${initName}` });
                         failedRawRows2.push(Object.assign({}, rec, { __advisorMissing: initName }));
                     }
                 } else if (initEmail) {
                     const hasMatchEmail = advisorEmailMap[initEmail.toLowerCase()] || false;
                     if (!hasMatchEmail) {
                         advisorNotFoundCount++;
-                        errors2.push({ row: rec.csvRowNumber, reason: `Onboarding advisor (email) not found: ${initEmail}` });
+                        errors2.push({ row: rec.csvRowNumber, customerNumber: rec.customerNumber || '', customerName: rec.customerName || '', reason: `Onboarding advisor (email) not found: ${initEmail}` });
                         failedRawRows2.push(Object.assign({}, rec, { __advisorEmailMissing: initEmail }));
                     }
                 }
@@ -1011,7 +1011,7 @@ module.exports = async function(request) {
                             } catch (e) {
                                 updateErrors++;
                                 let reason = e && e.message ? e.message : String(e);
-                                errors2.push({ row: rec.csvRowNumber || originalIndex + 1, reason: `Update failed: ${reason}` });
+                                errors2.push({ row: rec.csvRowNumber || originalIndex + 1, customerNumber: rec.customerNumber || '', customerName: rec.customerName || '', reason: `Update failed: ${reason}` });
                                 failedRawRows2.push(Object.assign({}, rec, { __updateError: reason }));
                                 console.error(`Update failed for existing record ID=${existing.ID}:`, reason);
                             }
@@ -1035,7 +1035,7 @@ module.exports = async function(request) {
                             }
                             dbErrorCount++;
                             insertErrors.push({ index: originalIndex, reason, record: rec });
-                            errors2.push({ row: originalIndex + 1, reason });
+                            errors2.push({ row: originalIndex + 1, customerNumber: rec.customerNumber || '', customerName: rec.customerName || '', reason });
                             failedRawRows2.push(Object.assign({}, rec, { __dbError: reason }));
                             console.error(`Insert failed for record ${originalIndex}:`, reason);
                         }

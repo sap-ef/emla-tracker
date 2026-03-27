@@ -103,16 +103,17 @@ sap.ui.define([
           headerText:'Error Details',
           columns:[
             new sap.m.Column({header:new sap.m.Label({text:'Row'})}),
-            new sap.m.Column({header:new sap.m.Label({text:'Reason'})}),
-            new sap.m.Column({header:new sap.m.Label({text:'Raw'})})
+            new sap.m.Column({header:new sap.m.Label({text:'Customer #'})}),
+            new sap.m.Column({header:new sap.m.Label({text:'Customer Name'})}),
+            new sap.m.Column({header:new sap.m.Label({text:'Reason'})})
           ]
         });
         errors.forEach(function(er){
-          var raw=''; try{ raw=er.raw? JSON.stringify(er.raw): (er.record? JSON.stringify(er.record):''); }catch(e){ raw=''; }
           oTable.addItem(new sap.m.ColumnListItem({cells:[
             new sap.m.Text({text: er.row!=null? er.row: ''}),
-            new sap.m.Text({text: er.reason || er.__dbError || ''}),
-            new sap.m.Text({text: raw})
+            new sap.m.Text({text: er.customerNumber || ''}),
+            new sap.m.Text({text: er.customerName || ''}),
+            new sap.m.Text({text: er.reason || er.__dbError || ''})
           ]}));
         });
       }
@@ -127,9 +128,9 @@ sap.ui.define([
           var exportCsv='';
           if(failedCsv){ exportCsv=failedCsv; }
           else {
-            exportCsv='row,reason,raw\n';
-            errors.forEach(function(er){ var raw=''; try{ raw=er.raw? JSON.stringify(er.raw): (er.record? JSON.stringify(er.record):''); }catch(e){ raw=''; }
-              exportCsv += (er.row||'')+','+ '"'+ (er.reason||er.__dbError||'').replace(/"/g,'""') +'"'+','+'"'+ raw.replace(/"/g,'""') +'"'+'\n'; });
+            exportCsv='row,customerNumber,customerName,reason\n';
+            errors.forEach(function(er){
+              exportCsv += (er.row||'')+','+ '"'+ (er.customerNumber||'').replace(/"/g,'""') +'"'+','+ '"'+ (er.customerName||'').replace(/"/g,'""') +'"'+','+ '"'+ (er.reason||er.__dbError||'').replace(/"/g,'""') +'"'+'\n'; });
           }
           var blob=new Blob([exportCsv],{type:'text/csv;charset=utf-8;'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='upload-errors.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         }}),
