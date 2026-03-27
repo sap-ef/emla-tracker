@@ -27,19 +27,14 @@ sap.ui.define([
         var detectedType = this._detectTypeFromFilename(oFile.name);
         if (detectedType) {
           this._detectedCsvType = detectedType;
-          var rb = this.byId("csvTypeRadio");
-          var autoIdx = detectedType === 'integration' ? 0 : 1;
-          if (rb && typeof rb.setSelectedIndex === 'function') rb.setSelectedIndex(autoIdx);
           var label = detectedType === 'integration' ? 'Integration Suite' : 'Public Cloud ERP';
           this._showMessage('File selected: ' + oFile.name + '\nType auto-detected: ' + label, 'Information');
         } else {
           this._detectedCsvType = null;
-          var rb = this.byId("csvTypeRadio");
-          if (rb && typeof rb.setSelectedIndex === 'function') rb.setSelectedIndex(-1);
           this._showMessage(
             'File not recognized: "' + oFile.name + '".\n' +
             'Expected file names starting with:\n' +
-            '  • "SAP Integration Suite Assignment List..." (Integration Suite)\n' +
+            '  • "SAP Integration Suite EmLA Assignment List..." (Integration Suite)\n' +
             '  • "SAP Business Suite Assignment List..." (Public Cloud ERP)\n' +
             'Please select the correct file.',
             'Error'
