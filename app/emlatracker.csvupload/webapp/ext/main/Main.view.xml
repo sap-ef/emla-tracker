@@ -66,19 +66,19 @@
                                 
                                 <FormattedText id="formatText" htmlText="&lt;strong&gt;Integration Suite CSV:&lt;/strong&gt;&lt;br/&gt;
                                 Required: customerName, customerNumber, emlaType, region, country&lt;br/&gt;
-                                Optional: startDate, erpOnbAdvNome, btpOnbAdvNome, btpOnbAdvEmail&lt;br/&gt;&lt;br/&gt;
+                                Optional: startDate, erpOnbAdvNome, btpOnbAdvNome, btpOnbAdvEmail, actualEffort, contractBaselineEffort&lt;br/&gt;&lt;br/&gt;
                                 &lt;strong&gt;Public ERP CSV:&lt;/strong&gt;&lt;br/&gt;
                                 Required: customerName, customerNumber, emlaType&lt;br/&gt;
-                                Optional: region, country, startDate, erpOnbAdvNome, btpOnbAdvNome, btpOnbAdvEmail&lt;br/&gt;&lt;br/&gt;
+                                Optional: region, country, startDate, erpOnbAdvNome, btpOnbAdvNome, btpOnbAdvEmail, actualEffort, contractBaselineEffort&lt;br/&gt;&lt;br/&gt;
                                 &lt;strong&gt;Date format:&lt;/strong&gt; YYYY-MM-DD&lt;br/&gt;
                                 &lt;strong&gt;File formats:&lt;/strong&gt; .csv, .txt&lt;br/&gt;
                                 &lt;strong&gt;Delimiters:&lt;/strong&gt; Comma, Semicolon, Pipe, Tab"/>
                                 
                                 <VBox id="sampleContainer" class="sapUiTinyMarginTop">
                                     <Label id="sampleLabel" text="Sample CSV (Integration Suite):" class="sapUiTinyMarginBottom" design="Bold"/>
-                                    <Text id="sampleHeader" text='customerName,customerNumber,emlaType,region,country,startDate,erpOnbAdvNome,btpOnbAdvNome,btpOnbAdvEmail' 
+                                    <Text id="sampleHeader" text='customerName,customerNumber,emlaType,region,country,startDate,erpOnbAdvNome,btpOnbAdvNome,btpOnbAdvEmail,actualEffort,contractBaselineEffort'
                                           class="sapUiTinyText"/>
-                                    <Text id="sampleData" text='"SAP Brazil","12345","Rise with SAP","LATAM","Brazil","2024-01-15","John Silva","Maria Santos","maria.santos@sap.com"' 
+                                    <Text id="sampleData" text='"SAP Brazil","12345","Rise with SAP","LATAM","Brazil","2024-01-15","John Silva","Maria Santos","maria.santos@sap.com","150.5","200"'
                                           class="sapUiTinyText"/>
                                 </VBox>
                             </VBox>

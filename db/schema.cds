@@ -29,6 +29,9 @@ entity EMLACustomers : managed {
 
       isBTPOnboardingSessionRequired : Boolean default false;
 
+      actualEffort                   : Decimal(10,2) default 0;
+      contractBaselineEffort         : Decimal(10,2) default 0;
+
       trackAppStatus                 : String(30);
       trackAppTP2Status              : String(30);
       trackAppSHStatus               : String(30);

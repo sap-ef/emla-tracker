@@ -230,7 +230,9 @@ module.exports = async function(request) {
             'btp onboarding session required': 'BTP Onboarding Session required',
             'btp onboarding session req': 'BTP Onboarding Session required',
             'btp session required': 'BTP Onboarding Session required',
-            id: 'ID'
+            id: 'ID',
+            'actual effort': 'Actual Effort',
+            'contract baseline effort': 'Contract Baseline Effort'
         }
 
         // Simple CSV preprocessing - just basic cleanup
@@ -332,7 +334,9 @@ module.exports = async function(request) {
             'region l5/country': 'country',
             'revenue start date': 'startDate',
             'contract start date (line item)': 'startDate',
-            'contract start date': 'startDate'
+            'contract start date': 'startDate',
+            'actual effort': 'actualEffort',
+            'contract baseline effort': 'contractBaselineEffort'
         };
 
         // Expected target headers for validation
@@ -367,7 +371,9 @@ module.exports = async function(request) {
                     'Region',
                     'Contract Start Date',
                     'BTP Onboarding Session required',
-                    'ID'
+                    'ID',
+                    'Actual Effort',
+                    'Contract Baseline Effort'
                 ],
                 rename_map: {
                     ID: 'externalID',
@@ -380,7 +386,9 @@ module.exports = async function(request) {
                     Region: 'region',
                     Country: 'country',
                     'Contract Start Date': 'startDate',
-                    'BTP Onboarding Session required': 'isBTPOnboardingSessionRequired'
+                    'BTP Onboarding Session required': 'isBTPOnboardingSessionRequired',
+                    'Actual Effort': 'actualEffort',
+                    'Contract Baseline Effort': 'contractBaselineEffort'
                 }
             },
             IntegrationSuite: {
@@ -390,7 +398,9 @@ module.exports = async function(request) {
                     'Region Lvl 1',
                     'Region L5/Country',
                     'Revenue Start Date',
-                    'CRT Link'
+                    'CRT Link',
+                    'Actual Effort',
+                    'Contract Baseline Effort'
                 ],
                 rename_map: {
                     'Account Name': 'customerName',
@@ -399,7 +409,9 @@ module.exports = async function(request) {
                     'Region Lvl 1': 'region',
                     'Region L5/Country': 'country',
                     'Revenue Start Date': 'startDate',
-                    'CRT Link': 'CRTLink'
+                    'CRT Link': 'CRTLink',
+                    'Actual Effort': 'actualEffort',
+                    'Contract Baseline Effort': 'contractBaselineEffort'
                 }
             }
         };
@@ -790,6 +802,20 @@ module.exports = async function(request) {
                 mappedRecord.isBTPOnboardingSessionRequired = false; // default to false if not provided
             }
 
+            // Process effort decimal fields
+            if (mappedRecord.actualEffort !== undefined && mappedRecord.actualEffort !== null && mappedRecord.actualEffort !== '') {
+                const parsed = parseFloat(String(mappedRecord.actualEffort).replace(',', '.').trim());
+                mappedRecord.actualEffort = isNaN(parsed) ? null : parsed;
+            } else {
+                mappedRecord.actualEffort = null;
+            }
+            if (mappedRecord.contractBaselineEffort !== undefined && mappedRecord.contractBaselineEffort !== null && mappedRecord.contractBaselineEffort !== '') {
+                const parsed = parseFloat(String(mappedRecord.contractBaselineEffort).replace(',', '.').trim());
+                mappedRecord.contractBaselineEffort = isNaN(parsed) ? null : parsed;
+            } else {
+                mappedRecord.contractBaselineEffort = null;
+            }
+
             // Derive productSKU and productName from raw productList value
             if (mappedRecord.productList) {
                 const parsedProd = parseProductList(mappedRecord.productList);
@@ -923,7 +949,7 @@ module.exports = async function(request) {
                         const chunk = uniqueKeys.slice(i, i + CHUNK_SIZE);
                         const custNums = chunk.map(c => c.customerNumber);
                         // Fetch by customerNumber first, then filter by emlaType in JS (safer if DB can't handle composite IN easily)
-                        const rows = await cds.run(SELECT.from('EMLACustomers').columns('ID','customerNumber','emlaType','erpOnbAdvNome','btpOnbAdvNome','btpOnbAdvEmail','productList','productName','productSKU').where({ customerNumber: { 'in': custNums } }));
+                        const rows = await cds.run(SELECT.from('EMLACustomers').columns('ID','customerNumber','emlaType','erpOnbAdvNome','btpOnbAdvNome','btpOnbAdvEmail','productList','productName','productSKU','actualEffort','contractBaselineEffort').where({ customerNumber: { 'in': custNums } }));
                         if (Array.isArray(rows)) existingRows.push(...rows);
                     }
                 }
@@ -985,6 +1011,8 @@ module.exports = async function(request) {
                         const newProductList = rec.productList ? rec.productList.trim() : '';
                         const newProductName = rec.productName ? rec.productName.trim() : '';
                         const newProductSKU = rec.productSKU ? rec.productSKU.trim() : '';
+                        const newActualEffort = rec.actualEffort != null ? rec.actualEffort : null;
+                        const newContractBaselineEffort = rec.contractBaselineEffort != null ? rec.contractBaselineEffort : null;
                         const diff = (
                             newBtpName.toLowerCase() !== (existing.btpOnbAdvNome || '').trim().toLowerCase() ||
                             newBtpEmail.toLowerCase() !== (existing.btpOnbAdvEmail || '').trim().toLowerCase() ||
@@ -993,7 +1021,9 @@ module.exports = async function(request) {
                             newIsBTPSession !== (existing.isBTPOnboardingSessionRequired || false) ||
                             newProductList !== (existing.productList || '').trim() ||
                             newProductName !== (existing.productName || '').trim() ||
-                            newProductSKU !== (existing.productSKU || '').trim()
+                            newProductSKU !== (existing.productSKU || '').trim() ||
+                            newActualEffort !== (existing.actualEffort != null ? existing.actualEffort : null) ||
+                            newContractBaselineEffort !== (existing.contractBaselineEffort != null ? existing.contractBaselineEffort : null)
                         );
                         if (diff) {
                             const updateObj = {};
@@ -1005,6 +1035,8 @@ module.exports = async function(request) {
                             if (newProductList !== (existing.productList || '').trim()) updateObj.productList = newProductList;
                             if (newProductName !== (existing.productName || '').trim()) updateObj.productName = newProductName;
                             if (newProductSKU !== (existing.productSKU || '').trim()) updateObj.productSKU = newProductSKU;
+                            if (newActualEffort !== (existing.actualEffort != null ? existing.actualEffort : null)) updateObj.actualEffort = newActualEffort;
+                            if (newContractBaselineEffort !== (existing.contractBaselineEffort != null ? existing.contractBaselineEffort : null)) updateObj.contractBaselineEffort = newContractBaselineEffort;
                             try {
                                 await cds.run(UPDATE('EMLACustomers').set(updateObj).where({ ID: existing.ID }));
                                 updated++;

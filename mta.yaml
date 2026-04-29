@@ -112,6 +112,7 @@ modules:
               Name: EMLATracker-service-uaa
               ServiceInstanceName: EMLATracker-uaa
               ServiceKeyName: EMLATracker-uaa-key
+              sap.cloud.service: lcap.EMLATracker
             - Authentication: OAuth2UserTokenExchange
               Name: EMLATracker-app-srv
               TokenServiceInstanceName: EMLATracker-uaa
