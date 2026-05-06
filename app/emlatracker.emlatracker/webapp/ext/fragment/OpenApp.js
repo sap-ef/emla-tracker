@@ -8,8 +8,8 @@ sap.ui.define(
         const emla_url =
           "https://emla-prod.launchpad.cfapps.us10.hana.ondemand.com/site/prod#CustomerData-manage?sap-ui-app-id-hint=saas_approuter_com.sap.rise.managecustomerdata&/CustomerMaster(ID=#ID#,IsActiveEntity=true)";
         var trackApp_url =
-          "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb?sap-ui-version=1.141.3&sap-iframe-params=sap-ui-version#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
-          // "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
+        "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
+          //"https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb?sap-ui-version=1.141.3&sap-iframe-params=sap-ui-version#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
 
         if (window.location.hostname.includes("move2sap-onb")) {
           console.log("move2sap-onb found in hostname");
