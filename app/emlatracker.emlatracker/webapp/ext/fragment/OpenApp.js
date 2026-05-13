@@ -200,31 +200,29 @@ sap.ui.define(
             );
             break;
 
-          case "Private Cloud ERP_button1": // Workflow App
-            if (!oCompleteData.externalID) {
-              MessageBox.warning(
-                "External ID ausente para Workflow App. Atualize o registro antes de abrir."
-              );
-              return;
-            }
-            MessageToast.show("Opening Workflow App for Private Cloud ERP");
-            var url3 = emla_url.replace("#ID#", oCompleteData.externalID);
-            window.open(url3, "_blank");
-            break;
-          case "Cloud ERP Private_button1": // Fallback variant if somehow normalization missed
-            console.log("[Fallback] Handling 'Cloud ERP Private' variant");
-            if (!oCompleteData.externalID) {
-              MessageBox.warning(
-                "External ID ausente para Workflow App (variant). Atualize o registro antes de abrir."
-              );
-              return;
-            }
-            MessageToast.show("Opening Workflow App (variant)");
-            var urlFallback = emla_url.replace(
-              "#ID#",
-              oCompleteData.externalID
+          case "Private Cloud ERP_button1": // Touch Point 1
+          case "Cloud ERP Private_button1":
+            MessageToast.show("Opening Touch Point 1 for Private Cloud ERP");
+            OpenAppController._handleTrackApp(
+              oCompleteData,
+              oContext,
+              oModel,
+              sCustomerID,
+              trackApp_url,
+              "button1"
             );
-            window.open(urlFallback, "_blank");
+            break;
+          case "Private Cloud ERP_button2": // Touch Point 2
+          case "Cloud ERP Private_button2":
+            MessageToast.show("Opening Touch Point 2 for Private Cloud ERP");
+            OpenAppController._handleTrackApp(
+              oCompleteData,
+              oContext,
+              oModel,
+              sCustomerID,
+              trackApp_url,
+              "button2"
+            );
             break;
 
           default:
@@ -242,6 +240,16 @@ sap.ui.define(
         trackApp_url,
         sButtonType
       ) {
+        // Validate that a BTP Onboarding Advisor is assigned before proceeding
+        var btpAdvisor = (oCompleteData.btpOnbAdvNome || "").trim();
+        var btpAdvisorEmail = (oCompleteData.btpOnbAdvEmail || "").trim();
+        if (!btpAdvisor && !btpAdvisorEmail) {
+          MessageBox.warning(
+            "Cannot create session: no BTP Onboarding Advisor is assigned to this customer. Please assign an advisor before proceeding."
+          );
+          return;
+        }
+
         // Determine which trackApp field to use based on button type
         var sTrackAppField = "trackApp"; // default
         var sTrackAppValue = "";

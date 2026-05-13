@@ -8,22 +8,6 @@
                         <VBox id="contentContainer" class="sapUiMediumMargin">
                             <MessageStrip id="messageStrip" visible="false" class="sapUiMediumMarginBottom"/>
                             
-                            <VBox id="downloadLinksContainer" class="sapUiSmallMarginBottom">
-                                <Label id="downloadLinksLabel" text="Download CSV from SharePoint:" class="sapUiTinyMarginBottom"/>
-                                <HBox id="downloadLinksBox">
-                                    <Link id="integrationSuiteLink"
-                                        text="Integration Suite"
-                                        href="https://sap.sharepoint.com/sites/124347/Lists/SAP%20Integration%20Suite%20EmLA%20Assignment%20List/AllItems.aspx?viewid=b4d1590a%2D14ac%2D4607%2D970f%2D1bdc97e5a231"
-                                        target="_blank"
-                                        class="sapUiTinyMarginEnd"/>
-                                    <Text id="linkSeparator" text="|" class="sapUiTinyMarginEnd"/>
-                                    <Link id="publicErpLink"
-                                        text="Public Cloud ERP"
-                                        href="https://sap.sharepoint.com/sites/124347/Lists/SAP%20Cloud%20ERP%20Assignment%20Decisions/Engagement%20Tracking.aspx?viewid=da23682f%2D81a0%2D439b%2Da12b%2D3b4ee1367704"
-                                        target="_blank"/>
-                                </HBox>
-                            </VBox>
-
                             <Label id="fileLabel" text="Select CSV File:" class="sapUiTinyMarginBottom"/>
                             <u:FileUploader id="fileUploader" 
                                 name="csvFile" 
@@ -70,6 +54,9 @@
                                 &lt;strong&gt;Public ERP CSV:&lt;/strong&gt;&lt;br/&gt;
                                 Required: customerName, customerNumber, emlaType&lt;br/&gt;
                                 Optional: region, country, startDate, erpOnbAdvNome, btpOnbAdvNome, btpOnbAdvEmail, actualEffort, contractBaselineEffort&lt;br/&gt;&lt;br/&gt;
+                                &lt;strong&gt;Private Cloud ERP CSV:&lt;/strong&gt;&lt;br/&gt;
+                                Required: Account Name (customerName), CRM ID (customerNumber)&lt;br/&gt;
+                                Optional: Region Lvl 1, Region L5/Country, Item Contract Start, S/4HANA Private ONB Advisor, BTP Onboarding Advisor, Actual Effort, Contract Baseline Effort&lt;br/&gt;&lt;br/&gt;
                                 &lt;strong&gt;Date format:&lt;/strong&gt; YYYY-MM-DD&lt;br/&gt;
                                 &lt;strong&gt;File formats:&lt;/strong&gt; .csv, .txt&lt;br/&gt;
                                 &lt;strong&gt;Delimiters:&lt;/strong&gt; Comma, Semicolon, Pipe, Tab"/>

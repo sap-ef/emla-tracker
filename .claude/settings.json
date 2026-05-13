@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c app/emlatracker.emlatracker/webapp/ext/controller/NotesDialogController.js)"
+    ]
+  }
+}

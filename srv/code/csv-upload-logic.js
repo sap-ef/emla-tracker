@@ -296,9 +296,11 @@ module.exports = async function(request) {
             // Signature headers that strongly indicate each type
             const looksLikePubERP = hasHeader('Customer ID', 'Cloud ERP Onboarding Advisor', 'Contract Start Date', 'BTP Onboarding Session required');
             const looksLikeIntSuite = hasHeader('Account Name', 'BTP ONB Advisor', 'Revenue Start Date', 'CRT Link');
+            const looksLikePrivate = hasHeader('CRM ID', 'S/4HANA Private ONB Advisor', 'Item Contract Start');
 
             const selectedPub = csvType === 'public' || csvType === 'PubCloudERP';
             const selectedInt = csvType === 'integration' || csvType === 'IntegrationSuite';
+            const selectedPrivate = csvType === 'private' || csvType === 'PrivateCloudERP';
 
             if (selectedPub && looksLikeIntSuite && !looksLikePubERP) {
                 request.error(400, 'CSV type mismatch: you selected "Public Cloud ERP" but the file looks like an "Integration Suite" CSV. Please select the correct type and try again.');
@@ -306,6 +308,14 @@ module.exports = async function(request) {
             }
             if (selectedInt && looksLikePubERP && !looksLikeIntSuite) {
                 request.error(400, 'CSV type mismatch: you selected "Integration Suite" but the file looks like a "Public Cloud ERP" CSV. Please select the correct type and try again.');
+                return;
+            }
+            if (selectedPrivate && (looksLikePubERP || looksLikeIntSuite) && !looksLikePrivate) {
+                request.error(400, 'CSV type mismatch: you selected "Private Cloud ERP" but the file does not match the expected Private Cloud format. Please select the correct type and try again.');
+                return;
+            }
+            if ((selectedPub || selectedInt) && looksLikePrivate && !looksLikePubERP && !looksLikeIntSuite) {
+                request.error(400, 'CSV type mismatch: the file looks like a "Private Cloud ERP" CSV but you selected a different type. Please select the correct type and try again.');
                 return;
             }
         }
@@ -320,9 +330,12 @@ module.exports = async function(request) {
             'erp customer number': 'customerNumber',
             'customer id': 'customerNumber',
             'customer number': 'customerNumber',
+            'crm id': 'customerNumber',
             'product list': 'productList',
             'productlist': 'productList',
             'emla staffing for btp': 'btpOnbAdvNome',
+            'emla staffing for sap cloud erp': 'erpOnbAdvNome',
+            's/4hana private onb advisor': 'erpOnbAdvNome',
             'btp onb advisor': 'btpOnbAdvNome',
             'btp onb advisor email': 'btpOnbAdvEmail',
             'btp onboard advisor email': 'btpOnbAdvEmail',
@@ -333,8 +346,11 @@ module.exports = async function(request) {
             'region l5/country': 'country',
             'region l5/country': 'country',
             'revenue start date': 'startDate',
+            'item contract start': 'startDate',
             'contract start date (line item)': 'startDate',
             'contract start date': 'startDate',
+            'assigned date': 'btpOnbAdvAssignedOn',
+            'btp oa assigned date': 'btpOnbAdvAssignedOn',
             'actual effort': 'actualEffort',
             'contract baseline effort': 'contractBaselineEffort'
         };
@@ -371,6 +387,7 @@ module.exports = async function(request) {
                     'Region',
                     'Contract Start Date',
                     'BTP Onboarding Session required',
+                    'BTP OA Assigned Date',
                     'ID',
                     'Actual Effort',
                     'Contract Baseline Effort'
@@ -387,6 +404,7 @@ module.exports = async function(request) {
                     Country: 'country',
                     'Contract Start Date': 'startDate',
                     'BTP Onboarding Session required': 'isBTPOnboardingSessionRequired',
+                    'BTP OA Assigned Date': 'btpOnbAdvAssignedOn',
                     'Actual Effort': 'actualEffort',
                     'Contract Baseline Effort': 'contractBaselineEffort'
                 }
@@ -399,6 +417,7 @@ module.exports = async function(request) {
                     'Region L5/Country',
                     'Revenue Start Date',
                     'CRT Link',
+                    'Assigned Date',
                     'Actual Effort',
                     'Contract Baseline Effort'
                 ],
@@ -410,6 +429,35 @@ module.exports = async function(request) {
                     'Region L5/Country': 'country',
                     'Revenue Start Date': 'startDate',
                     'CRT Link': 'CRTLink',
+                    'Assigned Date': 'btpOnbAdvAssignedOn',
+                    'Actual Effort': 'actualEffort',
+                    'Contract Baseline Effort': 'contractBaselineEffort'
+                }
+            },
+            PrivateCloudERP: {
+                wanted: [
+                    'CRM ID',
+                    'Account Name',
+                    'S/4HANA Private ONB Advisor',
+                    'BTP Onboarding Advisor',
+                    'Region Lvl 1',
+                    'Region L5/Country',
+                    'Item Contract Start',
+                    'Product List',
+                    'Actual Effort',
+                    'Contract Baseline Effort'
+                ],
+                rename_map: {
+                    'CRM ID': 'customerNumber',
+                    'Account Name': 'customerName',
+                    'S/4HANA Private ONB Advisor': 'erpOnbAdvNome',
+                    'BTP Onboarding Advisor': 'btpOnbAdvNome',
+                    'EmLA Staffing for BTP': 'btpOnbAdvNome',
+                    'EmLA Staffing for SAP Cloud ERP': 'erpOnbAdvNome',
+                    'Region Lvl 1': 'region',
+                    'Region L5/Country': 'country',
+                    'Item Contract Start': 'startDate',
+                    'Product List': 'productList',
                     'Actual Effort': 'actualEffort',
                     'Contract Baseline Effort': 'contractBaselineEffort'
                 }
@@ -426,11 +474,15 @@ module.exports = async function(request) {
             // Support forcedType values coming from UI or API. Accept both short keys and explicit mapping names.
             if (forcedType === 'integration' || forcedType === 'IntegrationSuite') {
                 mapping = MAPPINGS.IntegrationSuite; mappingType = 'IntegrationSuite';
+            } else if (forcedType === 'private' || forcedType === 'PrivateCloudERP') {
+                mapping = MAPPINGS.PrivateCloudERP; mappingType = 'PrivateCloudERP';
             } else if (forcedType === 'public' || forcedType === 'erp' || forcedType === 'pub' || forcedType === 'PubCloudERP') {
                 mapping = MAPPINGS.PubCloudERP; mappingType = 'PubCloudERP';
             } else {
                 // auto-detect based on header presence/scoring when not forced
-                if (has('Customer ID') || has('Cloud ERP Onboarding Advisor') || has('Contract Start Date')) {
+                if (has('CRM ID') || has('S/4HANA Private ONB Advisor') || has('Item Contract Start')) {
+                    mapping = MAPPINGS.PrivateCloudERP; mappingType = 'PrivateCloudERP';
+                } else if (has('Customer ID') || has('Cloud ERP Onboarding Advisor') || has('Contract Start Date')) {
                     mapping = MAPPINGS.PubCloudERP; mappingType = 'PubCloudERP';
                 } else if (has('Account Name') || has('BTP ONB Advisor') || has('Revenue Start Date')) {
                     mapping = MAPPINGS.IntegrationSuite; mappingType = 'IntegrationSuite';
@@ -439,7 +491,9 @@ module.exports = async function(request) {
                 if (!mapping) {
                     const pubScore = MAPPINGS.PubCloudERP.wanted.filter(h => has(h)).length;
                     const intScore = MAPPINGS.IntegrationSuite.wanted.filter(h => has(h)).length;
-                    if (pubScore > intScore) { mapping = MAPPINGS.PubCloudERP; mappingType = 'PubCloudERP'; }
+                    const privScore = MAPPINGS.PrivateCloudERP.wanted.filter(h => has(h)).length;
+                    if (privScore > pubScore && privScore > intScore) { mapping = MAPPINGS.PrivateCloudERP; mappingType = 'PrivateCloudERP'; }
+                    else if (pubScore > intScore) { mapping = MAPPINGS.PubCloudERP; mappingType = 'PubCloudERP'; }
                     else if (intScore > pubScore) { mapping = MAPPINGS.IntegrationSuite; mappingType = 'IntegrationSuite'; }
                     else { mapping = MAPPINGS.PubCloudERP; mappingType = 'PubCloudERP'; }
                 }
@@ -577,6 +631,29 @@ module.exports = async function(request) {
                 if (idIdx >= 0 && tokens[idIdx]) { result.ID = tokens[idIdx].trim(); if (!result.externalID) result.externalID = result.ID; }
             }
 
+            // PrivateCloudERP positional fallbacks
+            if (mappingType === 'PrivateCloudERP') {
+                // Fallback for btpOnbAdvNome from EmLA Staffing for BTP
+                if (!result.btpOnbAdvNome || !(result.btpOnbAdvNome+'').trim()) {
+                    const fallback = (raw['EmLA Staffing for BTP'] || '').toString().trim();
+                    if (fallback && isMeaningfulAdvisorName(fallback)) {
+                        result.btpOnbAdvNome = fallback;
+                    }
+                }
+                // Fallback for erpOnbAdvNome from EmLA Staffing for SAP Cloud ERP
+                if (!result.erpOnbAdvNome || !(result.erpOnbAdvNome+'').trim()) {
+                    const fallback2 = (raw['EmLA Staffing for SAP Cloud ERP'] || '').toString().trim();
+                    if (fallback2 && isMeaningfulAdvisorName(fallback2)) {
+                        result.erpOnbAdvNome = fallback2;
+                    }
+                }
+                // Ensure customerNumber comes from CRM ID
+                if (!result.customerNumber) {
+                    const crmId = (raw['CRM ID'] || '').toString().trim();
+                    if (crmId) result.customerNumber = crmId;
+                }
+            }
+
             // cross-mapping fallbacks
             try {
                 if (!result.region) { if (raw['Region Lvl 1']) result.region = (raw['Region Lvl 1']+'').trim(); else if (raw['Region']) result.region = (raw['Region']+'').trim(); }
@@ -603,6 +680,8 @@ module.exports = async function(request) {
                 // Follow priority: if caller explicitly said PubCloudERP, treat as Public Cloud ERP.
                 if (forcedType === 'PubCloudERP' || forcedType === 'pubclouderp' || forcedType === 'public') {
                     result.emlaType = 'Public Cloud ERP';
+                } else if (forcedType === 'private' || forcedType === 'PrivateCloudERP' || mappingType === 'PrivateCloudERP') {
+                    result.emlaType = 'Private Cloud ERP';
                 } else if (mappingType === 'IntegrationSuite') {
                     result.emlaType = 'Integration Suite';
                 } else {
@@ -611,6 +690,7 @@ module.exports = async function(request) {
                 // normalize common synonyms
                 const v = (result.emlaType + '').toLowerCase();
                 if (v.indexOf('public') !== -1 || v.indexOf('pubcloud') !== -1 || v.indexOf('public cloud') !== -1) result.emlaType = 'Public Cloud ERP';
+                else if (v.indexOf('private') !== -1 || v.indexOf('private cloud') !== -1) result.emlaType = 'Private Cloud ERP';
                 else if (v.indexOf('integration') !== -1 || v.indexOf('integration suite') !== -1) result.emlaType = 'Integration Suite';
             } catch (e) {}
 
@@ -727,6 +807,13 @@ module.exports = async function(request) {
             if (mappedRecord.startDateL) {
                 const iso = parseDateToISO(mappedRecord.startDateL);
                 if (iso) mappedRecord.startDate = iso;
+            }
+
+            // convert btpOnbAdvAssignedOn to ISO date if present
+            if (mappedRecord.btpOnbAdvAssignedOn) {
+                const isoAssigned = parseDateToISO(mappedRecord.btpOnbAdvAssignedOn);
+                if (isoAssigned) mappedRecord.btpOnbAdvAssignedOn = isoAssigned;
+                else delete mappedRecord.btpOnbAdvAssignedOn; // invalid date, remove
             }
 
             // basic validation
@@ -1013,6 +1100,7 @@ module.exports = async function(request) {
                         const newProductSKU = rec.productSKU ? rec.productSKU.trim() : '';
                         const newActualEffort = rec.actualEffort != null ? rec.actualEffort : null;
                         const newContractBaselineEffort = rec.contractBaselineEffort != null ? rec.contractBaselineEffort : null;
+                        const newBtpOnbAdvAssignedOn = rec.btpOnbAdvAssignedOn ? rec.btpOnbAdvAssignedOn.trim() : '';
                         const diff = (
                             newBtpName.toLowerCase() !== (existing.btpOnbAdvNome || '').trim().toLowerCase() ||
                             newBtpEmail.toLowerCase() !== (existing.btpOnbAdvEmail || '').trim().toLowerCase() ||
@@ -1023,7 +1111,8 @@ module.exports = async function(request) {
                             newProductName !== (existing.productName || '').trim() ||
                             newProductSKU !== (existing.productSKU || '').trim() ||
                             newActualEffort !== (existing.actualEffort != null ? existing.actualEffort : null) ||
-                            newContractBaselineEffort !== (existing.contractBaselineEffort != null ? existing.contractBaselineEffort : null)
+                            newContractBaselineEffort !== (existing.contractBaselineEffort != null ? existing.contractBaselineEffort : null) ||
+                            (newBtpOnbAdvAssignedOn && !(existing.btpOnbAdvAssignedOn || '').trim())
                         );
                         if (diff) {
                             const updateObj = {};
@@ -1037,6 +1126,7 @@ module.exports = async function(request) {
                             if (newProductSKU !== (existing.productSKU || '').trim()) updateObj.productSKU = newProductSKU;
                             if (newActualEffort !== (existing.actualEffort != null ? existing.actualEffort : null)) updateObj.actualEffort = newActualEffort;
                             if (newContractBaselineEffort !== (existing.contractBaselineEffort != null ? existing.contractBaselineEffort : null)) updateObj.contractBaselineEffort = newContractBaselineEffort;
+                            if (newBtpOnbAdvAssignedOn && !(existing.btpOnbAdvAssignedOn || '').trim()) updateObj.btpOnbAdvAssignedOn = newBtpOnbAdvAssignedOn;
                             try {
                                 await cds.run(UPDATE('EMLACustomers').set(updateObj).where({ ID: existing.ID }));
                                 updated++;

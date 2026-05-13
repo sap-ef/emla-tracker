@@ -25,9 +25,11 @@ sap.ui.define([], function () {
     console.log("🔥 DEBUG ICON: trackApp:", trackApp, "completed:", completed, "emlaType:", emlaType, "sessionType:", sessionType, "rejected:", rejected, "rejected type:", typeof rejected);
     
     // First check emlaType to see if this session type should be visible
-    if (emlaType === "Cloud ERP Private") {
-      console.log("DEBUG: Private Cloud ERP - no icons");
-      return "";
+    if (emlaType === "Cloud ERP Private" || emlaType === "Private Cloud ERP") {
+      if (sessionType !== "TP1" && sessionType !== "TP2") {
+        console.log("DEBUG: Private Cloud ERP - only TP1/TP2 allowed, this is:", sessionType);
+        return "";
+      }
     }
     
     if (emlaType === "Public Cloud ERP" && sessionType !== "TP1") {

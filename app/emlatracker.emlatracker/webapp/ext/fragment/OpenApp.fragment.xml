@@ -10,7 +10,7 @@
 					class="emlaIconPad"
 					tooltip="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'isTrackAppRejected'},{path:'trackAppStatus'},{path:'trackAppDate'}], formatter:'formatter.tooltipTP1'}"/>
 				<Link id="button1"
-					  text="{= ${emlaType} === 'Public Cloud ERP' ? 'TP1' : ${emlaType} === 'Integration Suite' ? 'TP1' : 'Workflow App'}"
+					  text="{= ${emlaType} === 'Public Cloud ERP' ? 'TP1' : ${emlaType} === 'Integration Suite' ? 'TP1' : ${emlaType} === 'Private Cloud ERP' ? 'TP1' : 'Workflow App'}"
 					  press="handler.onPressEMLA" 
 					  core:require="{ handler: 'emlatracker/emlatracker/ext/fragment/OpenApp'}"
 					  class="sapUiTinyMarginEnd sapUiTinyMarginBegin">
@@ -21,10 +21,10 @@
 			</HBox>
 			
 			<!-- Separador 1 - só aparece se button2 tem texto -->
-			<Text text="{= ${emlaType} === 'Integration Suite' ? ' | ' : ''}" id="separator1" 
+			<Text text="{= ${emlaType} === 'Integration Suite' || ${emlaType} === 'Private Cloud ERP' ? ' | ' : ''}" id="separator1"
 				  class="sapUiTinyMarginEnd"/>
 			
-			<!-- Botão 2 - texto vazio para Private Cloud ERP -->
+			<!-- Botão 2 - texto vazio exceto para Integration Suite e Private Cloud ERP -->
 			<HBox id="hboxButton2">
 			<core:Icon id="iconTP2" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
 				src="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'emlaType'},{path:'isTrackAppTP2Rejected'}], formatter:'formatter.iconTP2'}"
@@ -32,8 +32,8 @@
 					class="emlaIconPad"
 					tooltip="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'isTrackAppTP2Rejected'},{path:'trackAppTP2Status'},{path:'trackAppTP2Date'}], formatter:'formatter.tooltipTP2'}"/>
 				<Link id="button2"
-					  text="{= ${emlaType} === 'Integration Suite' ? 'TP2' : ''}"
-					  press="handler.onPressEMLA" 
+					  text="{= ${emlaType} === 'Integration Suite' || ${emlaType} === 'Private Cloud ERP' ? 'TP2' : ''}"
+					  press="handler.onPressEMLA"
 					  core:require="{ handler: 'emlatracker/emlatracker/ext/fragment/OpenApp'}"
 					  class="sapUiTinyMarginEnd sapUiTinyMarginBegin">
 					<customData>

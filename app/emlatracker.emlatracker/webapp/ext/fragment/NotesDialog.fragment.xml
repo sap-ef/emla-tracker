@@ -5,14 +5,23 @@
 		id="notesDialog"
 		title="Customer Notes - {customerName}"
 		contentWidth="600px"
-		contentHeight="400px">
+		contentHeight="450px">
 		<content>
 			<VBox id="notesVBox" class="sapUiSmallMargin">
+				<Label id="assignedDateLabel" text="BTP OA Assigned Date" labelFor="assignedDatePicker" class="sapUiTinyMarginBottom"/>
+				<DatePicker
+					id="assignedDatePicker"
+					value="{path: 'btpOnbAdvAssignedOn', type: 'sap.ui.model.type.Date', formatOptions: {pattern: 'yyyy-MM-dd', source: {pattern: 'yyyy-MM-dd'}}}"
+					displayFormat="yyyy-MM-dd"
+					valueFormat="yyyy-MM-dd"
+					placeholder="YYYY-MM-DD"
+					width="200px"
+					class="sapUiSmallMarginBottom"/>
 				<Label id="notesLabel" text="Notes" labelFor="notesTextArea" class="sapUiTinyMarginBottom"/>
 				<TextArea
 					id="notesTextArea"
 					value="{notes}"
-					rows="15"
+					rows="12"
 					width="100%"
 					maxLength="5000"
 					showExceededText="true"

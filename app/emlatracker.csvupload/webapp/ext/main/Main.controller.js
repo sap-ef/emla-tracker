@@ -16,6 +16,7 @@ sap.ui.define([
       var clean = (name || '').replace(/\s*\(\d+\)\s*(\.[^.]+)?$/, '$1').trim();
       var lower = clean.toLowerCase();
       if (lower.indexOf('sap integration suite') !== -1) return 'integration';
+      if (lower.indexOf('sap private cloud') !== -1) return 'private';
       if (lower.indexOf('sap business suite') !== -1) return 'public';
       return null;
     },
@@ -27,7 +28,7 @@ sap.ui.define([
         var detectedType = this._detectTypeFromFilename(oFile.name);
         if (detectedType) {
           this._detectedCsvType = detectedType;
-          var label = detectedType === 'integration' ? 'Integration Suite' : 'Public Cloud ERP';
+          var label = detectedType === 'integration' ? 'Integration Suite' : detectedType === 'private' ? 'Private Cloud ERP' : 'Public Cloud ERP';
           this._showMessage('File selected: ' + oFile.name + '\nType auto-detected: ' + label, 'Information');
         } else {
           this._detectedCsvType = null;
@@ -35,6 +36,7 @@ sap.ui.define([
             'File not recognized: "' + oFile.name + '".\n' +
             'Expected file names starting with:\n' +
             '  • "SAP Integration Suite EmLA Assignment List..." (Integration Suite)\n' +
+            '  • "SAP Private Cloud..." (Private Cloud ERP)\n' +
             '  • "SAP Business Suite Assignment List..." (Public Cloud ERP)\n' +
             'Please select the correct file.',
             'Error'
@@ -65,7 +67,7 @@ sap.ui.define([
       if (!oModel) return Promise.reject(new Error("No OData model"));
       var that = this;
 
-      function smartSplitLines(text){ var out=[],cur='',q=false; for(var i=0;i<text.length;i++){ var ch=text[i]; if(ch==='"'){ if(q && i+1<text.length && text[i+1]==='"'){ cur+='"'; i++; continue;} q=!q; cur+=ch; continue;} if(!q && (ch==='\n'||ch==='\r')){ if(ch==='\r' && i+1<text.length && text[i+1]==='\n'){/*skip*/} if(cur.trim().length>0) out.push(cur); cur=''; continue;} cur+=ch;} if(cur.trim().length>0) out.push(cur); return out; }
+      function smartSplitLines(text){ var out=[],cur='',q=false; for(var i=0;i<text.length;i++){ var ch=text[i]; if(ch==='"'){ if(q && i+1<text.length && text[i+1]==='"'){ cur+='""'; i++; continue;} q=!q; cur+=ch; continue;} if(!q && (ch==='\n'||ch==='\r')){ if(ch==='\r' && i+1<text.length && text[i+1]==='\n'){/*skip*/} if(cur.trim().length>0) out.push(cur); cur=''; continue;} cur+=ch;} if(cur.trim().length>0) out.push(cur); return out; }
       var lines = smartSplitLines(csvText); if(lines.length===0){ that._showMessage("CSV file is empty","Error"); return Promise.reject(new Error("Empty")); }
       var header = lines[0]; var dataLines = lines.slice(1); var totalRows=dataLines.length;
 

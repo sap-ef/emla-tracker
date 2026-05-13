@@ -46,7 +46,7 @@ sap.ui.define([
 			};
 			
 			// Request the binding to refresh from server to get latest notes
-			oBindingContext.requestSideEffects(["notes"]).then(function() {
+			oBindingContext.requestSideEffects(["notes", "btpOnbAdvAssignedOn"]).then(function() {
 				openDialog();
 			}).catch(function(error) {
 				// If requestSideEffects fails, still open the dialog with available data

@@ -30,7 +30,8 @@ async function callExternalService(customer, sessionType, label, useFallback) {
       reponsible: customer.btpOnbAdvEmail,
       emlaType: customer.emlaType,
       emlaID: customer.ID,
-      sessionType: sessionType
+      sessionType: sessionType,
+      onbAdvAssignDate: customer.btpOnbAdvAssignedOn
     };
     if (contractStartDateFmt) payloadInput.contractStartDate = contractStartDateFmt;
     if (contractStartDateFmt) payloadInput.startDate = contractStartDateFmt;
