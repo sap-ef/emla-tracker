@@ -159,6 +159,14 @@
                         "placement": "After"
                       },
                       "template": "emlatracker.emlatracker.ext.fragment.NotesButton"
+                    },
+                    "VCRButton": {
+                      "header": "VCR",
+                      "width": "60px",
+                      "position": {
+                        "placement": "After"
+                      },
+                      "template": "emlatracker.emlatracker.ext.fragment.VCRButton"
                     }
                   },
                   "actions": {

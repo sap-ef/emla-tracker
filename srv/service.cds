@@ -4,6 +4,7 @@ using {EMLATracker as db} from '../db/schema.cds';
 service EMLATrackerService {
 
     @Capabilities.DeleteRestrictions.Deletable: false
+    @cds.redirection.target
     entity EMLACustomers    as projection on db.EMLACustomers {
         *,
         virtual nextActionDate : Date
@@ -63,6 +64,13 @@ service EMLATrackerService {
 
     // Analyze engagement progress - not bound to EMLACustomers
     action importAnalyzeEngagementProgress(internalInDays: Integer) returns String;
+
+    // Follow-up entities
+    entity FollowUp          as projection on db.FollowUp;
+    entity FollowUpScenarios as projection on db.FollowUpScenarios;
+
+    @readonly
+    entity Scenarios         as projection on db.Scenarios;
 }
 
 annotate EMLATrackerService with @requires: ['authenticated-user'];

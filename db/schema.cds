@@ -52,6 +52,8 @@ entity EMLACustomers : managed {
 
       completedOn                    : Date;
       notes                          : String(5000);
+      followUp                       : Composition of one FollowUp
+                                           on followUp.customer = $self;
 }
 
 entity EMLATypeVH       as
@@ -83,4 +85,32 @@ entity AnalyzeEngagementProgress {
       engagementTaskName          : String;
       customerId                  : String;
       date                        : Date;
+}
+
+// Global catalog of scenarios, organized by EMLA type
+@assert.unique.uniqueScenario: [emlaType, name]
+entity Scenarios : managed {
+  key ID       : UUID;
+      emlaType : String(50);
+      name     : String(200);
+}
+
+// Follow-up record — 1:1 with EMLACustomers, owned via Composition
+@assert.unique.uniqueFollowUpPerCustomer: [customer]
+entity FollowUp : managed {
+  key ID             : UUID;
+      customer       : Association to one EMLACustomers;
+      returnDate              : Date;
+      btpOnbAdvEmail          : String(100);
+      isSessionInterested     : Boolean default false;
+      notes                   : String(5000);
+      scenarios      : Composition of many FollowUpScenarios
+                           on scenarios.followUp = $self;
+}
+
+// Junction: selected scenarios per FollowUp
+entity FollowUpScenarios {
+  key ID       : UUID;
+      followUp : Association to one FollowUp;
+      scenario : Association to one Scenarios;
 }

@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -c app/emlatracker.emlatracker/webapp/ext/controller/NotesDialogController.js)"
+      "Bash(node -c app/emlatracker.emlatracker/webapp/ext/controller/NotesDialogController.js)",
+      "Skill(playwright-cli)",
+      "Skill(playwright-cli:*)"
     ]
   }
 }

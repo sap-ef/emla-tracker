@@ -1,0 +1,76 @@
+- generic [ref=e7]:
+  - banner "Shell Bar" [ref=e8]:
+    - heading "Application Development" [level=1] [ref=e9]
+    - generic [ref=e10]:
+      - button "Logo" [active]
+      - generic [ref=e11]:
+        - heading "Application Development" [level=1] [ref=e13]
+        - heading "Project Preview" [level=2] [ref=e15]
+  - generic [ref=e18]:
+    - generic [ref=e22]:
+      - heading "EMLATracker" [level=2] [ref=e23]
+      - generic [ref=e26]: 1.0.0
+    - generic [ref=e28]:
+      - generic [ref=e30]:
+        - heading "Web Applications (2)" [level=3] [ref=e31]
+        - separator [ref=e32]
+        - paragraph [ref=e33]: The user will have the following applications. Click to explore them live.
+        - iframe [ref=e34]:
+          - generic [ref=f1e8]:
+            - contentinfo
+      - generic [ref=e36]:
+        - heading "Services (1)" [level=3] [ref=e37]
+        - separator [ref=e38]
+        - grid [ref=e41]:
+          - row "EMLATrackerService 4 tables are included in this service. View service details and metadata for more info. Service Entity" [ref=e46]:
+            - gridcell "EMLATrackerService 4 tables are included in this service. View service details and metadata for more info. Service Entity" [ref=e47]:
+              - generic [ref=e49]:
+                - generic [ref=e50]:
+                  - heading "EMLATrackerService" [level=2] [ref=e53]
+                  - heading "4 tables are included in this service. View service details and metadata for more info." [level=2] [ref=e55]:
+                    - paragraph [ref=e58]:
+                      - text: 4 tables are included in this service. View
+                      - link "service details" [ref=e59] [cursor=pointer]:
+                        - /url: ./service/EMLATrackerService/
+                      - text: and
+                      - link "metadata" [ref=e60] [cursor=pointer]:
+                        - /url: ./service/EMLATrackerService/$metadata
+                      - text: for more info.
+                - grid "EMLATrackerService Service Entity" [ref=e62]:
+                  - generic [ref=e66]:
+                    - row "EMLACustomers Metadata Fiori Json Data" [ref=e67]:
+                      - gridcell "EMLACustomers" [ref=e68]:
+                        - generic [ref=e70]: EMLACustomers
+                      - gridcell "Metadata Fiori" [ref=e71]:
+                        - button "Metadata Fiori" [ref=e73] [cursor=pointer]:
+                          - generic [ref=e75]: 
+                      - gridcell "Json Data" [ref=e76]:
+                        - button "Json Data" [ref=e78] [cursor=pointer]:
+                          - generic [ref=e80]: 
+                    - row "OnboardAdvisors Metadata Fiori Json Data" [ref=e81]:
+                      - gridcell "OnboardAdvisors" [ref=e82]:
+                        - generic [ref=e84]: OnboardAdvisors
+                      - gridcell "Metadata Fiori" [ref=e85]:
+                        - button "Metadata Fiori" [ref=e87] [cursor=pointer]:
+                          - generic [ref=e89]: 
+                      - gridcell "Json Data" [ref=e90]:
+                        - button "Json Data" [ref=e92] [cursor=pointer]:
+                          - generic [ref=e94]: 
+                    - row "EMLATypeVH Metadata Fiori Json Data" [ref=e95]:
+                      - gridcell "EMLATypeVH" [ref=e96]:
+                        - generic [ref=e98]: EMLATypeVH
+                      - gridcell "Metadata Fiori" [ref=e99]:
+                        - button "Metadata Fiori" [ref=e101] [cursor=pointer]:
+                          - generic [ref=e103]: 
+                      - gridcell "Json Data" [ref=e104]:
+                        - button "Json Data" [ref=e106] [cursor=pointer]:
+                          - generic [ref=e108]: 
+                    - row "BTPOnbAdvEmailVH Metadata Fiori Json Data" [ref=e109]:
+                      - gridcell "BTPOnbAdvEmailVH" [ref=e110]:
+                        - generic [ref=e112]: BTPOnbAdvEmailVH
+                      - gridcell "Metadata Fiori" [ref=e113]:
+                        - button "Metadata Fiori" [ref=e115] [cursor=pointer]:
+                          - generic [ref=e117]: 
+                      - gridcell "Json Data" [ref=e118]:
+                        - button "Json Data" [ref=e120] [cursor=pointer]:
+                          - generic [ref=e122]: 
