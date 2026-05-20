@@ -245,23 +245,22 @@ sap.ui.define([
 					MessageBox.error("Failed to save Follow-Up. Please try again.");
 				});
 			} else {
-				// Update — PATCH
-				const oUpdateCtx = oODataModel.bindContext(
-					"/FollowUp(" + oFormData.followUpID + ")",
-					null,
-					{ $$groupId: "vcrUpdate" }
-				);
-				oUpdateCtx.requestObject().then(function () {
-					const oBound = oUpdateCtx.getBoundContext();
-					return Promise.all([
-						oBound.setProperty("isSessionInterested", oPayload.isSessionInterested),
-						oBound.setProperty("returnDate", oPayload.returnDate),
-						oBound.setProperty("btpOnbAdvEmail", oPayload.btpOnbAdvEmail),
-						oBound.setProperty("notes", oPayload.notes)
-					]);
+				// Update — direct PATCH (avoids OData V4 standalone-binding quirks)
+				const sUrl = oODataModel.sServiceUrl + "/FollowUp(" + oFormData.followUpID + ")";
+				fetch(sUrl, {
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						isSessionInterested: oPayload.isSessionInterested,
+						returnDate: oPayload.returnDate,
+						btpOnbAdvEmail: oPayload.btpOnbAdvEmail,
+						notes: oPayload.notes
+					})
+				}).then(function (res) {
+					if (!res.ok) { return res.text().then(function (t) { throw new Error("HTTP " + res.status + ": " + t); }); }
+					return res.json();
 				}).then(function () {
-					return oODataModel.submitBatch("vcrUpdate");
-				}).then(function () {
+					oODataModel.refresh();
 					afterSave(oFormData.followUpID);
 				}).catch(function (oErr) {
 					console.error("Failed to update Follow-Up:", oErr);

@@ -5,7 +5,7 @@
     "type": "application",
     "i18n": "i18n/i18n.properties",
     "applicationVersion": {
-      "version": "0.0.14"
+      "version": "0.0.15"
     },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
@@ -114,19 +114,43 @@
           "options": {
             "settings": {
               "contextPath": "/EMLACustomers",
-              "variantManagement": "Page",
+              "variantManagement": "Control",
               "navigation": {},
               "initialLoad": "Auto",
-              "filterSettings": {
-                "defaultFilterValues": [
+              "stickyMultiTabHeader": true,
+              "views": {
+                "paths": [
                   {
-                    "property": "status",
-                    "operation": "NE",
-                    "value": "Completed"
+                    "key": "customers",
+                    "annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#table"
+                  },
+                  {
+                    "key": "followup",
+                    "contextPath": "/FollowUpTracking",
+                    "annotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#followup"
                   }
                 ]
               },
               "controlConfiguration": {
+                "/FollowUpTracking/@com.sap.vocabularies.UI.v1.LineItem#followup": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable",
+                    "enableExport": true,
+                    "enableFullScreen": true
+                  },
+                  "columns": {
+                    "FollowUpSessionButton": {
+                      "header": "Session",
+                      "width": "100px",
+                      "position": {
+                        "anchor": "DataField::returnDate",
+                        "placement": "Before"
+                      },
+                      "template": "emlatracker.emlatracker.ext.fragment.FollowUpSessionButton",
+                      "properties": ["followUpID", "trackApp"]
+                    }
+                  }
+                },
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
                     "type": "ResponsiveTable",
@@ -144,6 +168,15 @@
                       },
                       "template": "emlatracker.emlatracker.ext.fragment.OpenApp"
                     },
+                    "VCRButton": {
+                      "header": "VCR",
+                      "width": "60px",
+                      "position": {
+                        "placement": "After"
+                      },
+                      "template": "emlatracker.emlatracker.ext.fragment.VCRButton",
+                      "properties": ["emlaType", "followUpID", "followUpIsSessionInterested"]
+                    },
                     "InfoButton": {
                       "header": "Info",
                       "width": "60px",
@@ -159,14 +192,6 @@
                         "placement": "After"
                       },
                       "template": "emlatracker.emlatracker.ext.fragment.NotesButton"
-                    },
-                    "VCRButton": {
-                      "header": "VCR",
-                      "width": "60px",
-                      "position": {
-                        "placement": "After"
-                      },
-                      "template": "emlatracker.emlatracker.ext.fragment.VCRButton"
                     }
                   },
                   "actions": {
@@ -188,8 +213,7 @@
                     }
                   }
                 }
-              },
-              "defaultTemplateAnnotationPath": "com.sap.vocabularies.UI.v1.SelectionPresentationVariant#table"
+              }
             }
           }
         }

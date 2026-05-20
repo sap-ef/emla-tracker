@@ -1,0 +1,17 @@
+ID,emlaType,name
+f1a2b3c4-0001-0000-0000-000000000001,Integration Suite,Integration Modernization
+f1a2b3c4-0002-0000-0000-000000000002,Integration Suite,S/4 & RISE Integration
+f1a2b3c4-0003-0000-0000-000000000003,Integration Suite,SAP PI/PO Modernization
+f1a2b3c4-0004-0000-0000-000000000004,Integration Suite,Neo to Integration Suite Migration
+f1a2b3c4-0005-0000-0000-000000000005,Integration Suite,Competitive Takeover (Non-SAP iPaas)
+f1a2b3c4-0006-0000-0000-000000000006,Integration Suite,B2B / EDI Integration
+f1a2b3c4-0007-0000-0000-000000000007,Integration Suite,B2G / e- invoicing Integration
+f1a2b3c4-0008-0000-0000-000000000008,Integration Suite,API Economy & Management
+f1a2b3c4-0009-0000-0000-000000000009,Integration Suite,Event-Driven Architecture
+f1a2b3c4-0010-0000-0000-000000000010,Integration Suite,SAP SaaS & Third Party Integration
+f1a2b3c4-0011-0000-0000-000000000011,Integration Suite,Edge Integration Cell
+f1a2b3c4-0012-0000-0000-000000000012,Integration Suite,"Governance, Operations & Resilience"
+f1a2b3c4-0013-0000-0000-000000000013,Integration Suite,Agent-to-Agent / MCP Integration
+f1a2b3c4-0014-0000-0000-000000000014,Integration Suite,Business Data Cloud & Data Integration
+f1a2b3c4-0015-0000-0000-000000000015,Integration Suite,Master Data Integration (MDI)
+f1a2b3c4-0016-0000-0000-000000000016,Integration Suite,No specific use case as of now

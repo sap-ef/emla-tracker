@@ -7,7 +7,9 @@ service EMLATrackerService {
     @cds.redirection.target
     entity EMLACustomers    as projection on db.EMLACustomers {
         *,
-        virtual nextActionDate : Date
+        virtual nextActionDate                        : Date,
+        followUp.ID                                   as followUpID                    : UUID,
+        followUp.isSessionInterested                  as followUpIsSessionInterested   : Boolean
     }
         actions {
             @Common.SideEffects       : {
@@ -69,8 +71,20 @@ service EMLATrackerService {
     entity FollowUp          as projection on db.FollowUp;
     entity FollowUpScenarios as projection on db.FollowUpScenarios;
 
+    entity FollowUpTracking  as projection on db.FollowUpTracking
+        actions {
+            @Common.SideEffects: {
+                TargetProperties: ['trackApp'],
+                TargetEntities  : ['FollowUpTracking']
+            }
+            @Core.OperationAvailable: true
+            action createVCRSession() returns String;
+        };
+
     @readonly
     entity Scenarios         as projection on db.Scenarios;
+
+    action onbFollowUpTrackApp(ID: UUID) returns String;
 }
 
 annotate EMLATrackerService with @requires: ['authenticated-user'];

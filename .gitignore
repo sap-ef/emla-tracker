@@ -47,3 +47,8 @@ app/emlatracker.emlatracker/dist-zip/emlatrackeremlatracker.zip
 
 app/emlatracker.emlatracker/dist/
 app/emlatracker.csvupload/dist/
+
+.playwright-cli/
+screenshots/
+
+Makefile*

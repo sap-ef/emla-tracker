@@ -99,7 +99,7 @@ annotate service.EMLACustomers with @(
             $Type                : 'UI.DataField',
             Value                : erpOnbAdvNome,
             Label                : 'ERP OA',
-            ![@HTML5.CssDefaults]: {width: '250px'},
+            ![@HTML5.CssDefaults]: {width: '200px'},
         },
         {
             $Type                : 'UI.DataField',
@@ -129,6 +129,7 @@ annotate service.EMLACustomers with @(
         status, ],
     UI.SelectionPresentationVariant #table : {
         $Type : 'UI.SelectionPresentationVariantType',
+        Text  : 'EMLA Customers',
         PresentationVariant : {
             $Type : 'UI.PresentationVariantType',
             Visualizations : [
@@ -136,6 +137,10 @@ annotate service.EMLACustomers with @(
             ],
             GroupBy : [
                 emlaType,
+            ],
+            RequestAtLeast : [
+                followUpID,
+                followUpIsSessionInterested,
             ],
             SortOrder : [
                 {
@@ -204,6 +209,104 @@ annotate service.EMLACustomers with {
                 },
             ],
             Label : 'EMLA Types',
+        },
+        Common.ValueListWithFixedValues : true,
+    )
+};
+
+annotate service.FollowUpTracking with @(
+    Capabilities.InsertRestrictions.Insertable: false,
+    Capabilities.DeleteRestrictions.Deletable : false,
+    UI.LineItem #followup : [
+        {
+            $Type                : 'UI.DataField',
+            Label                : 'Return Date',
+            Value                : returnDate,
+            ![@HTML5.CssDefaults]: {width: '120px'},
+        },
+        {
+            $Type                : 'UI.DataField',
+            Label                : 'Follow-up Advisor',
+            Value                : btpOnbAdvEmail,
+            ![@HTML5.CssDefaults]: {width: '220px'},
+        },
+        {
+            $Type                : 'UI.DataField',
+            Label                : 'Customer Name',
+            Value                : customerName,
+            ![@HTML5.CssDefaults]: {width: '100%'},
+        },
+        {
+            $Type                : 'UI.DataField',
+            Label                : 'Customer Number',
+            Value                : customerNumber,
+            ![@HTML5.CssDefaults]: {width: '140px'},
+        },
+        {
+            $Type                : 'UI.DataField',
+            Label                : 'EMLA Type',
+            Value                : emlaType,
+            ![@HTML5.CssDefaults]: {width: '160px'},
+        },
+        {
+            $Type                : 'UI.DataField',
+            Label                : 'Session Interested',
+            Value                : isSessionInterested,
+            ![@HTML5.CssDefaults]: {width: '120px'},
+        },
+    ],
+    UI.SelectionFields : [
+        btpOnbAdvEmail,
+        returnDate,
+        emlaType,
+    ],
+    UI.SelectionPresentationVariant #followup : {
+        $Type               : 'UI.SelectionPresentationVariantType',
+        Text                : 'Follow-up Sessions',
+        PresentationVariant : {
+            $Type          : 'UI.PresentationVariantType',
+            Visualizations : ['@UI.LineItem#followup'],
+            RequestAtLeast : [
+                followUpID,
+                trackApp,
+            ],
+            SortOrder      : [{
+                $Type      : 'Common.SortOrderType',
+                Property   : returnDate,
+                Descending : false,
+            }],
+        },
+        SelectionVariant    : {
+            $Type         : 'UI.SelectionVariantType',
+            SelectOptions : [
+                {
+                    $Type        : 'UI.SelectOptionType',
+                    PropertyName : isSessionInterested,
+                    Ranges       : [{
+                        Sign   : #I,
+                        Option : #EQ,
+                        Low    : true,
+                    }],
+                },
+            ],
+        },
+    },
+);
+
+annotate service.FollowUpTracking with {
+    btpOnbAdvEmail @(
+        Common.Label: 'Follow-up Advisor',
+        Common.ValueList : {
+            $Type : 'Common.ValueListType',
+            CollectionPath : 'BTPOnbAdvEmailVH',
+            Parameters : [
+                {
+                    $Type : 'Common.ValueListParameterInOut',
+                    LocalDataProperty : btpOnbAdvEmail,
+                    ValueListProperty : 'btpOnbAdvEmail',
+                },
+            ],
+            Label : 'Onboarding Advisors',
         },
         Common.ValueListWithFixedValues : true,
     )

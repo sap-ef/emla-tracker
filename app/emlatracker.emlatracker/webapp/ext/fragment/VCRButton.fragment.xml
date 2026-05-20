@@ -1,9 +1,9 @@
 <core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
 	<Button
 		id="vcrButton"
-		icon="sap-icon://activity-2"
-		type="{parts: ['followUp/ID', 'followUp/isSessionInterested'], formatter: 'formatter.buttonType'}"
-		tooltip="{parts: ['followUp/ID', 'followUp/isSessionInterested'], formatter: 'formatter.tooltip'}"
+		icon="{parts: ['emlaType', 'followUpID', 'followUpIsSessionInterested'], formatter: 'formatter.icon'}"
+		type="{parts: ['emlaType', 'followUpID', 'followUpIsSessionInterested'], formatter: 'formatter.buttonType'}"
+		tooltip="{parts: ['emlaType', 'followUpID', 'followUpIsSessionInterested'], formatter: 'formatter.tooltip'}"
 		press="handler.onOpenVCRDialog"
 		core:require="{
 			handler: 'emlatracker/emlatracker/ext/controller/VCRDialogController',

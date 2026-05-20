@@ -98,14 +98,15 @@ entity Scenarios : managed {
 // Follow-up record — 1:1 with EMLACustomers, owned via Composition
 @assert.unique.uniqueFollowUpPerCustomer: [customer]
 entity FollowUp : managed {
-  key ID             : UUID;
-      customer       : Association to one EMLACustomers;
-      returnDate              : Date;
-      btpOnbAdvEmail          : String(100);
-      isSessionInterested     : Boolean default false;
-      notes                   : String(5000);
-      scenarios      : Composition of many FollowUpScenarios
-                           on scenarios.followUp = $self;
+  key ID                  : UUID;
+      customer            : Association to one EMLACustomers;
+      returnDate          : Date;
+      btpOnbAdvEmail      : String(100);
+      isSessionInterested : Boolean default false;
+      trackApp            : String(36);
+      notes               : String(5000);
+      scenarios           : Composition of many FollowUpScenarios
+                                on scenarios.followUp = $self;
 }
 
 // Junction: selected scenarios per FollowUp
@@ -114,3 +115,19 @@ entity FollowUpScenarios {
       followUp : Association to one FollowUp;
       scenario : Association to one Scenarios;
 }
+
+// Flat view: EMLACustomers + FollowUp data for the Follow-up tracking tab
+entity FollowUpTracking as select from FollowUp as f
+    inner join EMLACustomers as c on f.customer.ID = c.ID {
+    key c.ID,
+        f.ID              as followUpID,
+        c.customerName,
+        c.customerNumber,
+        c.emlaType,
+        c.region,
+        f.returnDate,
+        f.btpOnbAdvEmail  as btpOnbAdvEmail,
+        f.isSessionInterested,
+        f.trackApp,
+        f.notes           as followUpNotes
+};

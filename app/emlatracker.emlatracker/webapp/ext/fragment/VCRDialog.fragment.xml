@@ -121,7 +121,7 @@
 								width="100%"
 								maxLength="5000"
 								showExceededText="true"
-								placeholder="Enter follow-up notes..." />
+								placeholder="Enter follow-up notes... (customer specifics, use cases, current activation status)" />
 						</VBox>
 					</content>
 				</Panel>

@@ -52,8 +52,26 @@
         }
       },
       "[production]": {
-        "db": "hana",
         "auth": "xsuaa"
+      },
+      "db": {
+        "[production]": {
+          "kind": "hana-cloud",
+          "model": [
+            "db/data-config"
+          ]
+        },
+        "[development]": {
+          "kind": "sql",
+          "model": [
+            "db/data-config",
+            "db/data-test"
+          ]
+        },
+        "model": [
+          "db",
+          "srv"
+        ]
       },
       "auth": {
         "[development]": {

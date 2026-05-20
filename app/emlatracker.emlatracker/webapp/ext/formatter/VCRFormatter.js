@@ -2,36 +2,33 @@ sap.ui.define([], function () {
 	"use strict";
 
 	return {
-		/**
-		 * Returns button type based on FollowUp existence and session interest.
-		 * @param {string} sFollowUpID - FollowUp/ID
-		 * @param {boolean} bIsSessionInterested - FollowUp/isSessionInterested
-		 * @returns {string} sap.m.ButtonType
-		 */
-		buttonType: function (sFollowUpID, bIsSessionInterested) {
-			if (!sFollowUpID) {
-				return "Default";
-			}
+		icon: function (sEmlaType, sFollowUpID, bIsSessionInterested) {
+			if (sEmlaType !== "Integration Suite") { return ""; }
 			if (bIsSessionInterested === true || bIsSessionInterested === "true" || bIsSessionInterested === 1) {
-				return "Success";
+				return "sap-icon://activity-2";
 			}
-			return "Attention";
+			return sFollowUpID ? "sap-icon://calendar" : "sap-icon://add";
 		},
 
-		/**
-		 * Returns tooltip based on FollowUp status.
-		 * @param {string} sFollowUpID - FollowUp/ID
-		 * @param {boolean} bIsSessionInterested - FollowUp/isSessionInterested
-		 * @returns {string} tooltip text
-		 */
-		tooltip: function (sFollowUpID, bIsSessionInterested) {
-			if (!sFollowUpID) {
-				return "No Follow-Up registered";
+		buttonType: function (sEmlaType, sFollowUpID, bIsSessionInterested) {
+			if (sEmlaType !== "Integration Suite") { return "Transparent"; }
+			if (sFollowUpID || bIsSessionInterested === true || bIsSessionInterested === "true" || bIsSessionInterested === 1) {
+				return "Success";
 			}
+			return "Default";
+		},
+
+		tooltip: function (sEmlaType, sFollowUpID, bIsSessionInterested) {
+			if (sEmlaType !== "Integration Suite") { return ""; }
+			if (!sFollowUpID) { return "No Follow-Up registered"; }
 			if (bIsSessionInterested === true || bIsSessionInterested === "true" || bIsSessionInterested === 1) {
 				return "Follow-Up: Session interest registered";
 			}
 			return "Follow-Up: No session interest";
+		},
+
+		isVisible: function (sEmlaType) {
+			return sEmlaType === "Integration Suite";
 		}
 	};
 });

@@ -3,7 +3,7 @@
  * @version(2.0)
  */
 const LCAPApplicationService = require("@sap/low-code-event-handler");
-const { handleTrackApp } = require("./code/onbtrackapp-common");
+const { handleTrackApp, handleFollowUpTrackApp, createVCRSessionForFollowUp } = require("./code/onbtrackapp-common");
 const emlacustomers_Logic = require("./code/emlacustomers-logic");
 const csvUpload_Logic = require("./code/csv-upload-logic");
 const syncEmla_Logic = require("./code/sync-emla-logic");
@@ -13,7 +13,6 @@ const analyzeEngagement_Logic = require("./code/analyze-engagement-logic");
 
 class EMLATrackerService extends LCAPApplicationService {
   async init() {
-    // Configure larger payload limits for CSV upload
     this.on("uploadCSV", async (request) => {
       return csvUpload_Logic(request);
     });
@@ -28,6 +27,15 @@ class EMLATrackerService extends LCAPApplicationService {
 
     this.on("onbTrackAppSH", async (request) => {
       return handleTrackApp(request, "trackAppSH");
+    });
+
+    this.on("onbFollowUpTrackApp", async (request) => {
+      return handleFollowUpTrackApp(request);
+    });
+
+    this.on("createVCRSession", "FollowUpTracking", async (request) => {
+      const customerID = request.params[0].ID;
+      return createVCRSessionForFollowUp(request, customerID);
     });
 
     this.on("setCompleted", "EMLACustomers", async (request) => {
@@ -50,44 +58,56 @@ class EMLATrackerService extends LCAPApplicationService {
       return sessionStatus_Logic.updateSessionStatus(request);
     });
 
+    // Force followUpID and followUpIsSessionInterested into $select so the VCR button
+    // receives the data even when Fiori Elements omits them from the query
+    this.before("READ", "EMLACustomers", (req) => {
+      const cols = req.query?.SELECT?.columns;
+      if (Array.isArray(cols)) {
+        const hasWild = cols.some(c => c === "*" || c.ref?.[0] === "*");
+        if (!hasWild) {
+          if (!cols.some(c => c.ref?.[c.ref.length - 1] === "followUpIsSessionInterested")) {
+            cols.push({ ref: ["followUpIsSessionInterested"] });
+          }
+          if (!cols.some(c => c.ref?.[c.ref.length - 1] === "followUpID")) {
+            cols.push({ ref: ["followUpID"] });
+          }
+        }
+      }
+    });
+
     // Calculate nextActionDate virtual field on READ
     this.after("READ", "EMLACustomers", (customers) => {
       if (!customers) return;
-      
+
       const calculateNextActionDate = (customer) => {
         const sessions = [];
-        
-        // Check TP1 session
-        if (customer.trackAppDate && 
-            !customer.isTrackAppCompleted && 
+
+        if (customer.trackAppDate &&
+            !customer.isTrackAppCompleted &&
             !customer.isTrackAppRejected) {
           sessions.push(new Date(customer.trackAppDate));
         }
-        
-        // Check TP2 session
-        if (customer.trackAppTP2Date && 
-            !customer.isTrackAppTP2Completed && 
+
+        if (customer.trackAppTP2Date &&
+            !customer.isTrackAppTP2Completed &&
             !customer.isTrackAppTP2Rejected) {
           sessions.push(new Date(customer.trackAppTP2Date));
         }
-        
-        // Check SH session
-        if (customer.trackAppSHDate && 
-            !customer.isTrackAppSHCompleted && 
+
+        if (customer.trackAppSHDate &&
+            !customer.isTrackAppSHCompleted &&
             !customer.isTrackAppSHRejected) {
           sessions.push(new Date(customer.trackAppSHDate));
         }
-        
-        // Return the earliest date
+
         if (sessions.length > 0) {
           const earliestDate = new Date(Math.min(...sessions));
-          return earliestDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+          return earliestDate.toISOString().split('T')[0];
         }
-        
+
         return null;
       };
-      
-      // Handle both single record and array of records
+
       if (Array.isArray(customers)) {
         customers.forEach(customer => {
           customer.nextActionDate = calculateNextActionDate(customer);
@@ -98,6 +118,15 @@ class EMLATrackerService extends LCAPApplicationService {
     });
 
     return super.init();
+  }
+
+  // FollowUpTracking is a JOIN view — LCAP's external-entity check crashes on it
+  // because _service is undefined for JOIN views. Bypass and let CAP's ORM handle it.
+  async onEventHandler(request, next) {
+    if (request.target && request.target.name === "EMLATrackerService.FollowUpTracking") {
+      return next();
+    }
+    return super.onEventHandler(request, next);
   }
 }
 

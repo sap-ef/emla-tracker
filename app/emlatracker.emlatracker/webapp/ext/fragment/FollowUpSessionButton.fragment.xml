@@ -1,0 +1,19 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
+	<HBox id="fuVCRContainer" class="sapUiTinyContentPadding">
+		<items>
+			<core:Icon
+				id="fuVCRIcon"
+				src="{parts: ['trackApp'], formatter: 'formatter.icon'}"
+				color="{parts: ['trackApp'], formatter: 'formatter.color'}"
+				class="emlaIconPad"
+				tooltip="{parts: ['trackApp'], formatter: 'formatter.tooltip'}"
+				core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/FollowUpSessionFormatter'}" />
+			<Link
+				id="fuVCRLink"
+				text="VCR"
+				press="handler.onPressVCR"
+				core:require="{handler: 'emlatracker/emlatracker/ext/controller/FollowUpSessionController'}"
+				class="sapUiTinyMarginBegin" />
+		</items>
+	</HBox>
+</core:FragmentDefinition>
