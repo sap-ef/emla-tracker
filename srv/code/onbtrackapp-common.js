@@ -21,6 +21,10 @@ function formatDateOnly(val) {
  * @returns {string} generated session code
  */
 async function callExternalService(customer, sessionType, label, useFallback) {
+  if (!customer.btpOnbAdvAssignedOn) {
+    throw new Error("BTP Onboarding Advisor Assigned Date (btpOnbAdvAssignedOn) is required to create a session");
+  }
+
   try {
     const destination = await cds.connect.to("onb_session");
 
