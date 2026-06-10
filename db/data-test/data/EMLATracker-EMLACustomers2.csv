@@ -2,3 +2,4 @@ ID,EXTERNALID,CUSTOMERNAME,CUSTOMERNUMBER,EMLATYPE,REGION,COUNTRY,STARTDATE,ERPO
 10000000-0000-0000-0000-000000000001,SEED-001,Acme Corporation (Seed),9999001,Private Cloud ERP,Americas,Brazil,2025-03-01,Marcos Fidelles,Eduardo Fagundes,eduardo.fagundes@sap.com,In Progress
 10000000-0000-0000-0000-000000000002,SEED-002,Global Tech Seed Ltda.,9999002,Integration Suite,EMEA,Germany,2025-04-15,Anna Schmidt,Eduardo Fagundes,eduardo.fagundes@sap.com,Follow-up
 10000000-0000-0000-0000-000000000003,SEED-003,Global Tech Seed Ltda.,9999003,Integration Suite,EMEA,Germany,2025-04-15,Anna Schmidt,Eduardo Fagundes,kanica.kaushal@sap.com,Follow-up
+cf deplo    

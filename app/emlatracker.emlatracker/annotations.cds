@@ -116,7 +116,7 @@ annotate service.EMLACustomers with @(
         {
             $Type : 'UI.DataFieldForAction',
             Action: 'EMLATrackerService.setCompleted',
-            Label : 'Set / Unset as Completed',
+            Label : 'Set / Unset as Closed-out',
         },
         {
             $Type : 'UI.DataFieldForAction',

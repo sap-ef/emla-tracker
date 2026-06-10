@@ -444,20 +444,23 @@ module.exports = async function(request) {
                     'Region L5/Country',
                     'Item Contract Start',
                     'Product List',
+                    'ID',
+                    'BTP OA Assigned Date',
                     'Actual Effort',
                     'Contract Baseline Effort'
                 ],
                 rename_map: {
+                    'ID': 'externalID',
                     'CRM ID': 'customerNumber',
                     'Account Name': 'customerName',
                     'S/4HANA Private ONB Advisor': 'erpOnbAdvNome',
                     'BTP Onboarding Advisor': 'btpOnbAdvNome',
-                    'EmLA Staffing for BTP': 'btpOnbAdvNome',
                     'EmLA Staffing for SAP Cloud ERP': 'erpOnbAdvNome',
                     'Region Lvl 1': 'region',
                     'Region L5/Country': 'country',
                     'Item Contract Start': 'startDate',
                     'Product List': 'productList',
+                    'BTP OA Assigned Date': 'btpOnbAdvAssignedOn',
                     'Actual Effort': 'actualEffort',
                     'Contract Baseline Effort': 'contractBaselineEffort'
                 }

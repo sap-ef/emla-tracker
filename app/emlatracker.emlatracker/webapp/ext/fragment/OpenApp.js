@@ -1,6 +1,14 @@
 sap.ui.define(
-  ["sap/m/MessageToast", "sap/m/MessageBox"],
-  function (MessageToast, MessageBox) {
+  [
+    "sap/m/MessageToast",
+    "sap/m/MessageBox",
+    "sap/m/Dialog",
+    "sap/m/DatePicker",
+    "sap/m/VBox",
+    "sap/m/Label",
+    "sap/m/Button",
+  ],
+  function (MessageToast, MessageBox, Dialog, DatePicker, VBox, Label, Button) {
     "use strict";
 
     var OpenAppController = {
@@ -8,8 +16,7 @@ sap.ui.define(
         const emla_url =
           "https://emla-prod.launchpad.cfapps.us10.hana.ondemand.com/site/prod#CustomerData-manage?sap-ui-app-id-hint=saas_approuter_com.sap.rise.managecustomerdata&/CustomerMaster(ID=#ID#,IsActiveEntity=true)";
         var trackApp_url =
-        "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
-          //"https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb?sap-ui-version=1.141.3&sap-iframe-params=sap-ui-version#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
+          "https://onb.launchpad.cfapps.eu10.hana.ondemand.com/site/onb#session-manage?sap-ui-app-id-hint=saas_approuter_session&/Sessions(ID=#ID#,IsActiveEntity=true)?layout=MidColumnFullScreen";
 
         if (window.location.hostname.includes("move2sap-onb")) {
           console.log("move2sap-onb found in hostname");
@@ -64,7 +71,6 @@ sap.ui.define(
                   norm.includes("cloud") &&
                   norm.includes("erp")
                 ) {
-                  // Accept permutations like 'Cloud ERP Private'
                   sEmlaType = "Private Cloud ERP";
                 } else if (
                   norm.includes("public") &&
@@ -114,7 +120,7 @@ sap.ui.define(
         trackApp_url,
         emla_url
       ) {
-        // Defensive normalization here as well (in case earlier normalization not applied in some build/cached version)
+        // Defensive normalization here as well
         if (sEmlaType) {
           const norm = sEmlaType.toLowerCase();
           if (
@@ -133,100 +139,63 @@ sap.ui.define(
             sEmlaType = "Integration Suite";
           }
         }
-        // Create a unique action key combining emlaType and button
         var sActionKey = sEmlaType + "_" + sButtonPressed;
 
         console.log("Action Key:", sActionKey);
 
-        // Define your actions based on the combination
         switch (sActionKey) {
-          case "Public Cloud ERP_button1": // Touch Point 1
+          case "Public Cloud ERP_button1":
             MessageToast.show("Opening Touch Point 1 for Public Cloud ERP");
             OpenAppController._handleTrackApp(
-              oCompleteData,
-              oContext,
-              oModel,
-              sCustomerID,
-              trackApp_url,
-              "button1"
+              oCompleteData, oContext, oModel, sCustomerID, trackApp_url, "button1"
             );
             break;
 
-          case "Public Cloud ERP_button2": // Touch Point 2
+          case "Public Cloud ERP_button2":
             MessageToast.show("Opening Touch Point 2 for Public Cloud ERP");
             OpenAppController._handleTrackApp(
-              oCompleteData,
-              oContext,
-              oModel,
-              sCustomerID,
-              trackApp_url,
-              "button2"
+              oCompleteData, oContext, oModel, sCustomerID, trackApp_url, "button2"
             );
             break;
 
-          case "Integration Suite_button1": // Touch Point 1
+          case "Integration Suite_button1":
             MessageToast.show("Opening Touch Point 1 for Integration Suite");
             OpenAppController._handleTrackApp(
-              oCompleteData,
-              oContext,
-              oModel,
-              sCustomerID,
-              trackApp_url,
-              "button1"
+              oCompleteData, oContext, oModel, sCustomerID, trackApp_url, "button1"
             );
             break;
 
-          case "Integration Suite_button2": // Touch Point 2
+          case "Integration Suite_button2":
             MessageToast.show("Opening Touch Point 2 for Integration Suite");
             OpenAppController._handleTrackApp(
-              oCompleteData,
-              oContext,
-              oModel,
-              sCustomerID,
-              trackApp_url,
-              "button2"
+              oCompleteData, oContext, oModel, sCustomerID, trackApp_url, "button2"
             );
             break;
 
-          case "Integration Suite_button3": // SH
+          case "Integration Suite_button3":
             MessageToast.show("Opening Sales Handover for Integration Suite");
             OpenAppController._handleTrackApp(
-              oCompleteData,
-              oContext,
-              oModel,
-              sCustomerID,
-              trackApp_url,
-              "button3"
+              oCompleteData, oContext, oModel, sCustomerID, trackApp_url, "button3"
             );
             break;
 
-          case "Private Cloud ERP_button1": // Touch Point 1
+          case "Private Cloud ERP_button1":
           case "Cloud ERP Private_button1":
             MessageToast.show("Opening Touch Point 1 for Private Cloud ERP");
             OpenAppController._handleTrackApp(
-              oCompleteData,
-              oContext,
-              oModel,
-              sCustomerID,
-              trackApp_url,
-              "button1"
+              oCompleteData, oContext, oModel, sCustomerID, trackApp_url, "button1"
             );
             break;
-          case "Private Cloud ERP_button2": // Touch Point 2
+
+          case "Private Cloud ERP_button2":
           case "Cloud ERP Private_button2":
             MessageToast.show("Opening Touch Point 2 for Private Cloud ERP");
             OpenAppController._handleTrackApp(
-              oCompleteData,
-              oContext,
-              oModel,
-              sCustomerID,
-              trackApp_url,
-              "button2"
+              oCompleteData, oContext, oModel, sCustomerID, trackApp_url, "button2"
             );
             break;
 
           default:
-            // Handle empty buttons (when text is empty)
             console.log("Empty button clicked, no action defined");
             break;
         }
@@ -250,26 +219,25 @@ sap.ui.define(
           return;
         }
 
-        // Determine which trackApp field to use based on button type
-        var sTrackAppField = "trackApp"; // default
+        var sTrackAppField = "trackApp";
         var sTrackAppValue = "";
-        var sBackendAction = "onbTrackApp"; // default backend action
-        var sSessionType = "TP1"; // default session type
+        var sBackendAction = "onbTrackApp";
+        var sSessionType = "TP1";
 
         switch (sButtonType) {
-          case "button1": // TP1
+          case "button1":
             sTrackAppField = "trackApp";
             sTrackAppValue = oCompleteData.trackApp;
             sBackendAction = "onbTrackApp";
             sSessionType = "TP1";
             break;
-          case "button2": // TP2
+          case "button2":
             sTrackAppField = "trackAppTP2";
             sTrackAppValue = oCompleteData.trackAppTP2;
             sBackendAction = "onbTrackAppTP2";
             sSessionType = "TP2";
             break;
-          case "button3": // SH
+          case "button3":
             sTrackAppField = "trackAppSH";
             sTrackAppValue = oCompleteData.trackAppSH;
             sBackendAction = "onbTrackAppSH";
@@ -283,52 +251,109 @@ sap.ui.define(
             break;
         }
 
-        console.log("=== FIELD CHECK DEBUG ===");
-        console.log("Button type:", sButtonType);
-        console.log("Field to check:", sTrackAppField);
-        console.log("Field value:", sTrackAppValue);
-        console.log("Is field empty?", !sTrackAppValue);
-        console.log("Backend action:", sBackendAction);
-        console.log("Will call backend?", !sTrackAppValue);
-        console.log("=== END FIELD CHECK DEBUG ===");
-
-        console.log("=== FIELD CHECK DEBUG ===");
-        console.log("Button type:", sButtonType);
-        console.log("Field to check:", sTrackAppField);
-        console.log("Field value:", sTrackAppValue);
-        console.log("Is field empty?", !sTrackAppValue);
-        console.log("Backend action:", sBackendAction);
-        console.log("Will call backend?", !sTrackAppValue);
-        console.log("=== END FIELD CHECK DEBUG ===");
-
         if (!sTrackAppValue) {
-          // Create trackApp if it doesn't exist using the specific backend action
-          const oFunction = oModel.bindContext(`/${sBackendAction}(...)`);
-          oFunction.setParameter("ID", sCustomerID);
-          oFunction.setParameter("sessionType", sSessionType);
-
-          oFunction
-            .execute()
-            .then(() => {
-              const oResult = oFunction.getBoundContext().getObject();
-              // Use the appropriate field from the result
-              var sResultTrackApp = oResult[sTrackAppField] || oResult.trackApp;
-              var url = trackApp_url.replace("#ID#", sResultTrackApp);
-              window.open(url, "_blank");
-              console.log("Generated URL:", url);
-              MessageToast.show(`${sTrackAppField}: ${sResultTrackApp}`);
-              oContext.refresh();
-            })
-            .catch((oError) => {
-              MessageBox.error(`Error: ${oError.message}`);
+          // If btpOnbAdvAssignedOn is missing, ask the user before creating the session
+          if (!oCompleteData.btpOnbAdvAssignedOn) {
+            OpenAppController._openAssignDateDialog(oContext, function () {
+              OpenAppController._callBackendForSession(
+                oModel, sCustomerID, sBackendAction, sSessionType,
+                sTrackAppField, trackApp_url, oContext
+              );
             });
+            return;
+          }
+
+          OpenAppController._callBackendForSession(
+            oModel, sCustomerID, sBackendAction, sSessionType,
+            sTrackAppField, trackApp_url, oContext
+          );
         } else {
-          // Use existing trackApp value
           var url = trackApp_url.replace("#ID#", sTrackAppValue);
           window.open(url, "_blank");
           console.log("Using existing URL:", url);
           MessageToast.show(`Opening ${sTrackAppField}: ${sTrackAppValue}`);
         }
+      },
+
+      _callBackendForSession: function (
+        oModel, sCustomerID, sBackendAction, sSessionType,
+        sTrackAppField, trackApp_url, oContext
+      ) {
+        const oFunction = oModel.bindContext(`/${sBackendAction}(...)`);
+        oFunction.setParameter("ID", sCustomerID);
+        oFunction.setParameter("sessionType", sSessionType);
+
+        oFunction
+          .execute()
+          .then(() => {
+            const oResult = oFunction.getBoundContext().getObject();
+            var sResultTrackApp = oResult[sTrackAppField] || oResult.trackApp;
+            var url = trackApp_url.replace("#ID#", sResultTrackApp);
+            window.open(url, "_blank");
+            console.log("Generated URL:", url);
+            MessageToast.show(`${sTrackAppField}: ${sResultTrackApp}`);
+            oContext.refresh();
+          })
+          .catch((oError) => {
+            MessageBox.error(`Error: ${oError.message}`);
+          });
+      },
+
+      _openAssignDateDialog: function (oContext, fnProceed) {
+        var oDatePicker = new DatePicker({
+          valueFormat: "yyyy-MM-dd",
+          displayFormat: "yyyy-MM-dd",
+          width: "100%",
+          placeholder: "YYYY-MM-DD",
+        }).addStyleClass("sapUiSmallMarginTop");
+
+        var oDialog = new Dialog({
+          title: "BTP OA Assigned Date Required",
+          contentWidth: "480px",
+          content: [
+            new VBox({
+              renderType: "Bare",
+              width: "100%",
+              items: [
+                new Label({
+                  text: "The BTP Onboarding Advisor Assigned Date is required to create a session. Please enter it to proceed:",
+                  wrapping: true,
+                }),
+                oDatePicker,
+              ],
+            }),
+          ],
+          beginButton: new Button({
+            text: "Confirm",
+            type: "Emphasized",
+            press: function () {
+              var sDate = oDatePicker.getValue();
+              if (!sDate || !oDatePicker.isValidValue()) {
+                MessageToast.show("Please enter a valid date.");
+                return;
+              }
+              oContext
+                .setProperty("btpOnbAdvAssignedOn", sDate)
+                .then(function () {
+                  oDialog.close();
+                  oDialog.destroy();
+                  fnProceed();
+                })
+                .catch(function (oError) {
+                  MessageBox.error("Error saving date: " + oError.message);
+                });
+            },
+          }),
+          endButton: new Button({
+            text: "Cancel",
+            press: function () {
+              oDialog.close();
+              oDialog.destroy();
+            },
+          }),
+        }).addStyleClass("sapUiContentPadding");
+
+        oDialog.open();
       },
     };
 
