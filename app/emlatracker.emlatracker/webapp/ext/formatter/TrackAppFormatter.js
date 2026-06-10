@@ -21,9 +21,15 @@ sap.ui.define([], function () {
     return false;
   }
 
-  function icon(trackApp, completed, emlaType, sessionType, rejected) {
-    console.log("🔥 DEBUG ICON: trackApp:", trackApp, "completed:", completed, "emlaType:", emlaType, "sessionType:", sessionType, "rejected:", rejected, "rejected type:", typeof rejected);
-    
+  function icon(trackApp, completed, emlaType, sessionType, rejected, externalID) {
+    console.log("🔥 DEBUG ICON: trackApp:", trackApp, "completed:", completed, "emlaType:", emlaType, "sessionType:", sessionType, "rejected:", rejected, "externalID:", externalID);
+
+    // Legacy Workflow App records (Private Cloud ERP + 36-char UUID externalID) show no session icons
+    if (_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID)) {
+      console.log("DEBUG: legacy workflow record - hiding icon for", sessionType);
+      return "";
+    }
+
     // First check emlaType to see if this session type should be visible
     if (emlaType === "Cloud ERP Private" || emlaType === "Private Cloud ERP") {
       if (sessionType !== "TP1" && sessionType !== "TP2") {
@@ -114,6 +120,43 @@ sap.ui.define([], function () {
     return _normalizeCompleted(completed) ? "emlaIconGreen" : "";
   }
 
+  function _isPrivateCloudERP(emlaType) {
+    return emlaType === "Private Cloud ERP" || emlaType === "Cloud ERP Private";
+  }
+
+  function _isLegacyWorkflow(externalID) {
+    return typeof externalID === "string" && externalID.length === 36;
+  }
+
+  function button1Text(emlaType, externalID) {
+    console.log("🟢 button1Text:", {emlaType: emlaType, externalID: externalID, len: externalID ? externalID.length : "n/a"});
+    if (_isPrivateCloudERP(emlaType)) {
+      return _isLegacyWorkflow(externalID) ? "Workflow App" : "TP1";
+    }
+    if (emlaType === "Public Cloud ERP") return "TP1";
+    if (emlaType === "Integration Suite") return "TP1";
+    return "Workflow App";
+  }
+
+  function separator1Text(emlaType, externalID) {
+    console.log("🟡 separator1Text:", {emlaType: emlaType, externalID: externalID, len: externalID ? externalID.length : "n/a"});
+    if (emlaType === "Integration Suite") return " | ";
+    if (_isPrivateCloudERP(emlaType) && !_isLegacyWorkflow(externalID)) return " | ";
+    return "";
+  }
+
+  function tp2HBoxVisible(emlaType, externalID) {
+    var result = !(_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID));
+    console.log("🔵 tp2HBoxVisible:", {emlaType: emlaType, externalID: externalID, len: externalID ? externalID.length : "n/a", result: result});
+    return result;
+  }
+
+  function iconTP1Visible(emlaType, externalID) {
+    var result = !(_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID));
+    console.log("🟣 iconTP1Visible:", {emlaType: emlaType, externalID: externalID, len: externalID ? externalID.length : "n/a", result: result});
+    return result;
+  }
+
   function iconColor(trackApp, completed, rejected) {
     // console.log("🔥 iconColor CALLED WITH:", {
     //   trackApp: trackApp,
@@ -150,21 +193,24 @@ sap.ui.define([], function () {
   }
 
   return {
-    iconTP1: function (trackApp, completed, emlaType, rejected) {
+    iconTP1: function (trackApp, completed, emlaType, rejected, externalID) {
       console.log("🔥 iconTP1 CALLED WITH:", {
         trackApp: trackApp,
         completed: completed,
         emlaType: emlaType,
         rejected: rejected,
-        rejected_type: typeof rejected
+        externalID: externalID
       });
-      
+
+      if (_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID)) {
+        return "";
+      }
+
       if (rejected === true || rejected === "true" || rejected === 1 || rejected === "1") {
-        console.log("🔥 TP1 DIRECT REJECTION TEST: YES, showing decline icon!");
         return "sap-icon://decline";
       }
-      
-      return icon(trackApp, completed, emlaType, "TP1", rejected);
+
+      return icon(trackApp, completed, emlaType, "TP1", rejected, externalID);
     },
     tooltipTP1: function (trackApp, completed, rejected, status, date) {
       return tooltip(trackApp, completed, "TP1", rejected, status, date);
@@ -175,21 +221,24 @@ sap.ui.define([], function () {
       console.log("🔥 colorTP1 returning:", result);
       return result;
     },
-    iconTP2: function (trackAppTP2, completedTP2, emlaType, rejectedTP2) {
+    iconTP2: function (trackAppTP2, completedTP2, emlaType, rejectedTP2, externalID) {
       console.log("🔥 iconTP2 CALLED WITH:", {
         trackAppTP2: trackAppTP2,
         completedTP2: completedTP2,
         emlaType: emlaType,
         rejectedTP2: rejectedTP2,
-        rejectedTP2_type: typeof rejectedTP2
+        externalID: externalID
       });
-      
+
+      if (_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID)) {
+        return "";
+      }
+
       if (rejectedTP2 === true || rejectedTP2 === "true" || rejectedTP2 === 1 || rejectedTP2 === "1") {
-        console.log("🔥 TP2 DIRECT REJECTION TEST: YES, showing decline icon!");
         return "sap-icon://decline";
       }
-      
-      return icon(trackAppTP2, completedTP2, emlaType, "TP2", rejectedTP2);
+
+      return icon(trackAppTP2, completedTP2, emlaType, "TP2", rejectedTP2, externalID);
     },
     tooltipTP2: function (trackAppTP2, completedTP2, rejectedTP2, statusTP2, dateTP2) {
       return tooltip(trackAppTP2, completedTP2, "TP2", rejectedTP2, statusTP2, dateTP2);
@@ -230,6 +279,10 @@ sap.ui.define([], function () {
       // console.log("🔥 colorSH returning:", result);
       return result;
     },
-    greenClass: greenClass
+    greenClass: greenClass,
+    button1Text: button1Text,
+    separator1Text: separator1Text,
+    tp2HBoxVisible: tp2HBoxVisible,
+    iconTP1Visible: iconTP1Visible
   };
 });

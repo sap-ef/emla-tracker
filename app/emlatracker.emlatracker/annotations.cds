@@ -141,6 +141,9 @@ annotate service.EMLACustomers with @(
             RequestAtLeast : [
                 followUpID,
                 followUpIsSessionInterested,
+                externalID,
+                trackApp,
+                trackAppTP2,
             ],
             SortOrder : [
                 {
