@@ -24,18 +24,10 @@ sap.ui.define([], function () {
   function icon(trackApp, completed, emlaType, sessionType, rejected, externalID) {
     console.log("🔥 DEBUG ICON: trackApp:", trackApp, "completed:", completed, "emlaType:", emlaType, "sessionType:", sessionType, "rejected:", rejected, "externalID:", externalID);
 
-    // Legacy Workflow App records (Private Cloud ERP + 36-char UUID externalID) show no session icons
-    if (_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID)) {
-      console.log("DEBUG: legacy workflow record - hiding icon for", sessionType);
+    // Private Cloud uses external actions only (Workflow App or Assignment) — no session icons
+    if (_isPrivateCloudERP(emlaType)) {
+      console.log("DEBUG: Private Cloud ERP - hiding session icon for", sessionType);
       return "";
-    }
-
-    // First check emlaType to see if this session type should be visible
-    if (emlaType === "Cloud ERP Private" || emlaType === "Private Cloud ERP") {
-      if (sessionType !== "TP1" && sessionType !== "TP2") {
-        console.log("DEBUG: Private Cloud ERP - only TP1/TP2 allowed, this is:", sessionType);
-        return "";
-      }
     }
     
     if (emlaType === "Public Cloud ERP" && sessionType !== "TP1") {
@@ -128,10 +120,16 @@ sap.ui.define([], function () {
     return typeof externalID === "string" && externalID.length === 36;
   }
 
+  function _isAssignment(externalID) {
+    return typeof externalID === "string" && externalID.length > 0 && /^\d+$/.test(externalID);
+  }
+
   function button1Text(emlaType, externalID) {
     console.log("🟢 button1Text:", {emlaType: emlaType, externalID: externalID, len: externalID ? externalID.length : "n/a"});
     if (_isPrivateCloudERP(emlaType)) {
-      return _isLegacyWorkflow(externalID) ? "Workflow App" : "TP1";
+      if (_isLegacyWorkflow(externalID)) return "Workflow App";
+      if (_isAssignment(externalID)) return "Assignment";
+      return "";
     }
     if (emlaType === "Public Cloud ERP") return "TP1";
     if (emlaType === "Integration Suite") return "TP1";
@@ -141,19 +139,18 @@ sap.ui.define([], function () {
   function separator1Text(emlaType, externalID) {
     console.log("🟡 separator1Text:", {emlaType: emlaType, externalID: externalID, len: externalID ? externalID.length : "n/a"});
     if (emlaType === "Integration Suite") return " | ";
-    if (_isPrivateCloudERP(emlaType) && !_isLegacyWorkflow(externalID)) return " | ";
     return "";
   }
 
   function tp2HBoxVisible(emlaType, externalID) {
-    var result = !(_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID));
-    console.log("🔵 tp2HBoxVisible:", {emlaType: emlaType, externalID: externalID, len: externalID ? externalID.length : "n/a", result: result});
+    var result = !_isPrivateCloudERP(emlaType);
+    console.log("🔵 tp2HBoxVisible:", {emlaType: emlaType, externalID: externalID, result: result});
     return result;
   }
 
   function iconTP1Visible(emlaType, externalID) {
-    var result = !(_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID));
-    console.log("🟣 iconTP1Visible:", {emlaType: emlaType, externalID: externalID, len: externalID ? externalID.length : "n/a", result: result});
+    var result = !_isPrivateCloudERP(emlaType);
+    console.log("🟣 iconTP1Visible:", {emlaType: emlaType, externalID: externalID, result: result});
     return result;
   }
 
@@ -202,7 +199,7 @@ sap.ui.define([], function () {
         externalID: externalID
       });
 
-      if (_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID)) {
+      if (_isPrivateCloudERP(emlaType)) {
         return "";
       }
 
@@ -230,7 +227,7 @@ sap.ui.define([], function () {
         externalID: externalID
       });
 
-      if (_isPrivateCloudERP(emlaType) && _isLegacyWorkflow(externalID)) {
+      if (_isPrivateCloudERP(emlaType)) {
         return "";
       }
 

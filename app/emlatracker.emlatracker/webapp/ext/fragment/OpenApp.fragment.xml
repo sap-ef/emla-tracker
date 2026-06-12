@@ -5,7 +5,7 @@
 			<HBox id="hboxButton1">
 				<!-- Icon for TP1 / Workflow App availability -->
 			<core:Icon id="iconTP1" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
-				visible="{= !((${emlaType} === 'Private Cloud ERP' || ${emlaType} === 'Cloud ERP Private') &amp;&amp; !!${externalID} &amp;&amp; ${externalID}.length === 36)}"
+				visible="{= !(${emlaType} === 'Private Cloud ERP' || ${emlaType} === 'Cloud ERP Private')}"
 				src="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'emlaType'},{path:'isTrackAppRejected'},{path:'externalID'}], formatter:'formatter.iconTP1'}"
 				color="{parts:[{path:'trackApp'},{path:'isTrackAppCompleted'},{path:'isTrackAppRejected'}], formatter:'formatter.colorTP1'}"
 					class="emlaIconPad"
@@ -27,16 +27,16 @@
 				  text="{parts:[{path:'emlaType'},{path:'externalID'}], formatter:'formatter.separator1Text'}"
 				  class="sapUiTinyMarginEnd"/>
 
-			<!-- Botão 2 - texto vazio exceto para Integration Suite e Private Cloud ERP novos -->
+			<!-- Botão 2 - texto vazio exceto para Integration Suite -->
 			<HBox id="hboxButton2"
-				visible="{= !((${emlaType} === 'Private Cloud ERP' || ${emlaType} === 'Cloud ERP Private') &amp;&amp; !!${externalID} &amp;&amp; ${externalID}.length === 36)}">
+				visible="{= !(${emlaType} === 'Private Cloud ERP' || ${emlaType} === 'Cloud ERP Private')}">
 			<core:Icon id="iconTP2" core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/TrackAppFormatter'}"
 				src="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'emlaType'},{path:'isTrackAppTP2Rejected'},{path:'externalID'}], formatter:'formatter.iconTP2'}"
 				color="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'isTrackAppTP2Rejected'}], formatter:'formatter.colorTP2'}"
 					class="emlaIconPad"
 					tooltip="{parts:[{path:'trackAppTP2'},{path:'isTrackAppTP2Completed'},{path:'isTrackAppTP2Rejected'},{path:'trackAppTP2Status'},{path:'trackAppTP2Date'}], formatter:'formatter.tooltipTP2'}"/>
 				<Link id="button2"
-					  text="{= ${emlaType} === 'Integration Suite' || (((${emlaType} === 'Private Cloud ERP' || ${emlaType} === 'Cloud ERP Private')) &amp;&amp; !(!!${externalID} &amp;&amp; ${externalID}.length === 36)) ? 'TP2' : ''}"
+					  text="{= ${emlaType} === 'Integration Suite' ? 'TP2' : ''}"
 					  press="handler.onPressEMLA"
 					  core:require="{ handler: 'emlatracker/emlatracker/ext/fragment/OpenApp'}"
 					  class="sapUiTinyMarginEnd sapUiTinyMarginBegin">

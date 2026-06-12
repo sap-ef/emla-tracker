@@ -43,6 +43,27 @@ sap.ui.define(
         const sCustomerID = oRowData.ID;
         const oModel = this.getModel();
 
+        // Private Cloud button1: handle synchronously (direct user gesture → no popup blocker)
+        var sEmlaTypeRaw = (oRowData.emlaType || "").toLowerCase();
+        var bIsPrivateCloud = sEmlaTypeRaw.includes("private") && sEmlaTypeRaw.includes("cloud");
+        if (bIsPrivateCloud && sAction === "button1") {
+          var sExtID = String(oRowData.externalID || "").trim();
+          console.log("Private Cloud button1 - externalID:", sExtID, "raw:", oRowData.externalID);
+          if (/^\d+$/.test(sExtID)) {
+            var sAssignmentUrl =
+              "https://sap.sharepoint.com/sites/124347/Lists/SAP%20Private%20Cloud%20Assignment%20List/DispForm.aspx?ID=" +
+              sExtID + "&pa=1&e=vCWnkC";
+            window.open(sAssignmentUrl, "_blank");
+            MessageToast.show("Opening Assignment: " + sExtID);
+          } else if (sExtID) {
+            window.open(emla_url.replace("#ID#", sExtID), "_blank");
+            MessageToast.show("Opening Workflow App");
+          } else {
+            MessageBox.warning("No external ID found for this record.");
+          }
+          return;
+        }
+
         var oNewContext = oModel.bindContext(
           `/EMLACustomers('${sCustomerID}')`
         );
@@ -179,20 +200,9 @@ sap.ui.define(
             );
             break;
 
-          case "Private Cloud ERP_button1":
-          case "Cloud ERP Private_button1":
-            MessageToast.show("Opening Touch Point 1 for Private Cloud ERP");
-            OpenAppController._handleTrackApp(
-              oCompleteData, oContext, oModel, sCustomerID, trackApp_url, "button1"
-            );
-            break;
-
           case "Private Cloud ERP_button2":
           case "Cloud ERP Private_button2":
-            MessageToast.show("Opening Touch Point 2 for Private Cloud ERP");
-            OpenAppController._handleTrackApp(
-              oCompleteData, oContext, oModel, sCustomerID, trackApp_url, "button2"
-            );
+            // TP2 hidden for Private Cloud — no action
             break;
 
           default:
