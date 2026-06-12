@@ -3,17 +3,17 @@
 	xmlns:core="sap.ui.core"
 	xmlns:f="sap.ui.layout.form">
 	<Dialog
-		id="vcrDialog"
-		title="Follow-Up — {vcr>/customerName}"
+		id="vrcDialog"
+		title="Follow-Up — {vrc>/customerName}"
 		contentWidth="640px"
 		resizable="true"
 		draggable="true">
 		<content>
-			<VBox id="vcrMainVBox" class="sapUiSmallMargin">
+			<VBox id="vrcMainVBox" class="sapUiSmallMargin">
 
 				<!-- Session Interest Switch -->
 				<f:SimpleForm
-					id="vcrInterestForm"
+					id="vrcInterestForm"
 					editable="true"
 					layout="ResponsiveGridLayout"
 					columnsL="1"
@@ -22,7 +22,7 @@
 						<Label id="sessionInterestLabel" text="Session Interest" labelFor="sessionInterestSwitch" />
 						<Switch
 							id="sessionInterestSwitch"
-							state="{vcr>/isSessionInterested}"
+							state="{vrc>/isSessionInterested}"
 							customTextOn="Yes"
 							customTextOff="No" />
 					</f:content>
@@ -30,13 +30,13 @@
 
 				<!-- Fields shown only when Session Interest = true -->
 				<Panel
-					id="vcrDetailsPanel"
-					visible="{vcr>/isSessionInterested}"
+					id="vrcDetailsPanel"
+					visible="{vrc>/isSessionInterested}"
 					backgroundDesign="Transparent"
 					class="sapUiNoContentPadding">
 					<content>
 						<f:SimpleForm
-							id="vcrDetailsForm"
+							id="vrcDetailsForm"
 							editable="true"
 							layout="ResponsiveGridLayout"
 							columnsL="2"
@@ -45,7 +45,7 @@
 								<Label id="returnDateLabel" text="Return Date" labelFor="returnDatePicker" required="true" />
 								<DatePicker
 									id="returnDatePicker"
-									value="{vcr>/returnDate}"
+									value="{vrc>/returnDate}"
 									displayFormat="yyyy-MM-dd"
 									valueFormat="yyyy-MM-dd"
 									placeholder="YYYY-MM-DD"
@@ -55,12 +55,12 @@
 								<Label id="btpAdvEmailLabel" text="BTP Onb Advisor Email" labelFor="btpAdvEmailInput" />
 								<Input
 									id="btpAdvEmailInput"
-									value="{vcr>/btpOnbAdvEmail}"
+									value="{vrc>/btpOnbAdvEmail}"
 									width="100%"
 									showValueHelp="true"
 									valueHelpRequest="handler.onAdvisorValueHelp"
 									placeholder="advisor@example.com"
-									core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VCRDialogController' }" />
+									core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VRCDialogController' }" />
 							</f:content>
 						</f:SimpleForm>
 
@@ -69,7 +69,7 @@
 							<Label id="scenariosLabel" text="Scenarios of Interest" class="sapUiTinyMarginBottom" />
 							<Table
 								id="scenariosTable"
-								items="{vcr>/scenarios}"
+								items="{vrc>/scenarios}"
 								noDataText="No scenarios added"
 								mode="None">
 								<columns>
@@ -85,18 +85,18 @@
 										<cells>
 											<Input
 												id="scenarioInput"
-												value="{vcr>scenarioName}"
+												value="{vrc>scenarioName}"
 												showValueHelp="true"
 												editable="true"
 												valueHelpRequest="handler.onScenarioValueHelp"
 												width="100%"
-												core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VCRDialogController' }" />
+												core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VRCDialogController' }" />
 											<Button
 												id="deleteScenarioBtn"
 												icon="sap-icon://delete"
 												type="Transparent"
 												press="handler.onDeleteScenario"
-												core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VCRDialogController' }" />
+												core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VRCDialogController' }" />
 										</cells>
 									</ColumnListItem>
 								</items>
@@ -108,15 +108,15 @@
 								type="Ghost"
 								press="handler.onAddScenario"
 								class="sapUiTinyMarginTop"
-								core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VCRDialogController' }" />
+								core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VRCDialogController' }" />
 						</VBox>
 
 						<!-- Notes -->
-						<VBox id="vcrNotesVBox" class="sapUiSmallMarginTop">
-							<Label id="vcrNotesLabel" text="Notes" labelFor="vcrNotesTextArea" class="sapUiTinyMarginBottom" />
+						<VBox id="vrcNotesVBox" class="sapUiSmallMarginTop">
+							<Label id="vrcNotesLabel" text="Notes" labelFor="vrcNotesTextArea" class="sapUiTinyMarginBottom" />
 							<TextArea
-								id="vcrNotesTextArea"
-								value="{vcr>/notes}"
+								id="vrcNotesTextArea"
+								value="{vrc>/notes}"
 								rows="5"
 								width="100%"
 								maxLength="5000"
@@ -130,18 +130,18 @@
 		</content>
 		<beginButton>
 			<Button
-				id="cancelVCRButton"
+				id="cancelVRCButton"
 				text="Cancel"
-				press="handler.onCancelVCRDialog"
-				core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VCRDialogController' }" />
+				press="handler.onCancelVRCDialog"
+				core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VRCDialogController' }" />
 		</beginButton>
 		<endButton>
 			<Button
-				id="saveVCRButton"
+				id="saveVRCButton"
 				text="Save"
 				type="Emphasized"
-				press="handler.onSaveVCRDialog"
-				core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VCRDialogController' }" />
+				press="handler.onSaveVRCDialog"
+				core:require="{ handler: 'emlatracker/emlatracker/ext/controller/VRCDialogController' }" />
 		</endButton>
 	</Dialog>
 </core:FragmentDefinition>

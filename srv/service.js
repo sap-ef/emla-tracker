@@ -3,7 +3,7 @@
  * @version(2.0)
  */
 const LCAPApplicationService = require("@sap/low-code-event-handler");
-const { handleTrackApp, handleFollowUpTrackApp, createVCRSessionForFollowUp } = require("./code/onbtrackapp-common");
+const { handleTrackApp, handleFollowUpTrackApp, createVRCSessionForFollowUp } = require("./code/onbtrackapp-common");
 const emlacustomers_Logic = require("./code/emlacustomers-logic");
 const csvUpload_Logic = require("./code/csv-upload-logic");
 const syncEmla_Logic = require("./code/sync-emla-logic");
@@ -33,9 +33,9 @@ class EMLATrackerService extends LCAPApplicationService {
       return handleFollowUpTrackApp(request);
     });
 
-    this.on("createVCRSession", "FollowUpTracking", async (request) => {
+    this.on("createVRCSession", "FollowUpTracking", async (request) => {
       const customerID = request.params[0].ID;
-      return createVCRSessionForFollowUp(request, customerID);
+      return createVRCSessionForFollowUp(request, customerID);
     });
 
     this.on("setCompleted", "EMLACustomers", async (request) => {
@@ -58,7 +58,7 @@ class EMLATrackerService extends LCAPApplicationService {
       return sessionStatus_Logic.updateSessionStatus(request);
     });
 
-    // Force followUpID and followUpIsSessionInterested into $select so the VCR button
+    // Force followUpID and followUpIsSessionInterested into $select so the VRC button
     // receives the data even when Fiori Elements omits them from the query
     this.before("READ", "EMLACustomers", (req) => {
       const cols = req.query?.SELECT?.columns;

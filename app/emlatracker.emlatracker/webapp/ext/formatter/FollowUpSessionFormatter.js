@@ -20,7 +20,7 @@ sap.ui.define([], function () {
 			if (!sTrackApp || sTrackApp.trim() === "") {
 				return "";
 			}
-			return "VCR:" + sTrackApp;
+			return "VRC:" + sTrackApp;
 		}
 	};
 });

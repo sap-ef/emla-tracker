@@ -78,7 +78,7 @@ service EMLATrackerService {
                 TargetEntities  : ['FollowUpTracking']
             }
             @Core.OperationAvailable: true
-            action createVCRSession() returns String;
+            action createVRCSession() returns String;
         };
 
     @readonly

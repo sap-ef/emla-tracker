@@ -1,12 +1,12 @@
 <core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
 	<Button
-		id="vcrButton"
+		id="vrcButton"
 		icon="{parts: ['emlaType', 'followUpID', 'followUpIsSessionInterested'], formatter: 'formatter.icon'}"
 		type="{parts: ['emlaType', 'followUpID', 'followUpIsSessionInterested'], formatter: 'formatter.buttonType'}"
 		tooltip="{parts: ['emlaType', 'followUpID', 'followUpIsSessionInterested'], formatter: 'formatter.tooltip'}"
-		press="handler.onOpenVCRDialog"
+		press="handler.onOpenVRCDialog"
 		core:require="{
-			handler: 'emlatracker/emlatracker/ext/controller/VCRDialogController',
-			formatter: 'emlatracker/emlatracker/ext/formatter/VCRFormatter'
+			handler: 'emlatracker/emlatracker/ext/controller/VRCDialogController',
+			formatter: 'emlatracker/emlatracker/ext/formatter/VRCFormatter'
 		}" />
 </core:FragmentDefinition>

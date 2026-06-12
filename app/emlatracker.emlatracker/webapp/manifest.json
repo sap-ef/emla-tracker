@@ -169,13 +169,13 @@
                       },
                       "template": "emlatracker.emlatracker.ext.fragment.OpenApp"
                     },
-                    "VCRButton": {
-                      "header": "VCR",
+                    "VRCButton": {
+                      "header": "VRC",
                       "width": "60px",
                       "position": {
                         "placement": "After"
                       },
-                      "template": "emlatracker.emlatracker.ext.fragment.VCRButton",
+                      "template": "emlatracker.emlatracker.ext.fragment.VRCButton",
                       "properties": ["emlaType", "followUpID", "followUpIsSessionInterested"]
                     },
                     "InfoButton": {

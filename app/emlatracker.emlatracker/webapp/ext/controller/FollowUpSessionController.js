@@ -13,7 +13,7 @@ sap.ui.define([
 	}
 
 	return {
-		onPressVCR: function (oEvent) {
+		onPressVRC: function (oEvent) {
 			var oLink = oEvent.getSource();
 			var oRow = oLink.getParent();
 			var oContext = oRow.getBindingContext();
@@ -29,7 +29,7 @@ sap.ui.define([
 			if (sTrackApp) {
 				var url = trackApp_url.replace("#ID#", sTrackApp);
 				window.open(url, "_blank");
-				MessageToast.show("VCR: " + sTrackApp);
+				MessageToast.show("VRC: " + sTrackApp);
 				return;
 			}
 
@@ -49,10 +49,10 @@ sap.ui.define([
 					var sUrl = trackApp_url.replace("#ID#", sCode);
 					window.open(sUrl, "_blank");
 				}
-				MessageToast.show("VCR Session created: " + sCode);
+				MessageToast.show("VRC Session created: " + sCode);
 				oContext.refresh();
 			}).catch(function (oErr) {
-				MessageBox.error("Failed to create VCR Session: " + oErr.message);
+				MessageBox.error("Failed to create VRC Session: " + oErr.message);
 			});
 		}
 	};

@@ -37,8 +37,8 @@ async function callExternalService(customer, sessionType, label, useFallback) {
       sessionType: sessionType,
       onbAdvAssignDate: customer.btpOnbAdvAssignedOn
     };
-    if (contractStartDateFmt && sessionType !== "VCR") payloadInput.contractStartDate = contractStartDateFmt;
-    if (contractStartDateFmt && sessionType !== "VCR") payloadInput.startDate = contractStartDateFmt;
+    if (contractStartDateFmt && sessionType !== "VRC") payloadInput.contractStartDate = contractStartDateFmt;
+    if (contractStartDateFmt && sessionType !== "VRC") payloadInput.startDate = contractStartDateFmt;
     if (customer.productSKU) payloadInput.contractSKU = customer.productSKU;
     const payload = { input: payloadInput };
 
@@ -119,7 +119,7 @@ async function handleTrackApp(request, field) {
 }
 
 /**
- * Handler for onbFollowUpTrackApp — creates a VCR session for a FollowUp record.
+ * Handler for onbFollowUpTrackApp — creates a VRC session for a FollowUp record.
  * @param {cds.Request} request
  */
 async function handleFollowUpTrackApp(request) {
@@ -146,7 +146,7 @@ async function handleFollowUpTrackApp(request) {
       return request.error(404, `Customer for FollowUp ${ID} not found`);
     }
 
-    const generatedCode = await callExternalService(customer, "VCR", label, false);
+    const generatedCode = await callExternalService(customer, "VRC", label, false);
     if (!generatedCode) {
       return request.error(500, "Error generating trackApp: No code generated");
     }
@@ -166,13 +166,13 @@ async function handleFollowUpTrackApp(request) {
 }
 
 /**
- * Bound action handler for createVCRSession on FollowUpTracking.
- * Called with the customer ID (view key). Looks up the FollowUp record and creates a VCR session.
+ * Bound action handler for createVRCSession on FollowUpTracking.
+ * Called with the customer ID (view key). Looks up the FollowUp record and creates a VRC session.
  * @param {cds.Request} request
  * @param {string} customerID - the EMLACustomers.ID (key of FollowUpTracking view)
  */
-async function createVCRSessionForFollowUp(request, customerID) {
-  const label = "createVCRSession";
+async function createVRCSessionForFollowUp(request, customerID) {
+  const label = "createVRCSession";
 
   try {
     const followUp = await SELECT.one.from("FollowUp").where({ customer_ID: customerID });
@@ -189,9 +189,9 @@ async function createVCRSessionForFollowUp(request, customerID) {
       return request.error(404, `Customer ${customerID} not found`);
     }
 
-    const generatedCode = await callExternalService(customer, "VCR", label, false);
+    const generatedCode = await callExternalService(customer, "VRC", label, false);
     if (!generatedCode) {
-      return request.error(500, "Error generating VCR session: No code generated");
+      return request.error(500, "Error generating VRC session: No code generated");
     }
 
     await UPDATE("FollowUp").set({ trackApp: generatedCode }).where({ customer_ID: customerID });
@@ -199,8 +199,8 @@ async function createVCRSessionForFollowUp(request, customerID) {
     return generatedCode;
   } catch (error) {
     console.error(`Error in ${label}:`, error);
-    return request.error(500, `Error generating VCR session: ${error.message}`);
+    return request.error(500, `Error generating VRC session: ${error.message}`);
   }
 }
 
-module.exports = { handleTrackApp, handleFollowUpTrackApp, createVCRSessionForFollowUp };
+module.exports = { handleTrackApp, handleFollowUpTrackApp, createVRCSessionForFollowUp };

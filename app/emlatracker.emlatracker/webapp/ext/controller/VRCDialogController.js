@@ -10,7 +10,7 @@ sap.ui.define([
 ], function (MessageToast, MessageBox, Fragment, SelectDialog, StandardListItem, Filter, FilterOperator, JSONModel) {
 	"use strict";
 
-	let _oVCRDialog = null;
+	let _oVRCDialog = null;
 	let _oSelectDialog = null;
 	let _oAdvisorDialog = null;
 	let _oCurrentRowContext = null;
@@ -29,7 +29,7 @@ sap.ui.define([
 	}
 
 	/**
-	 * Refreshes the List Report table binding so the VCR button icon updates.
+	 * Refreshes the List Report table binding so the VRC button icon updates.
 	 */
 	function refreshList(oView) {
 		try {
@@ -109,7 +109,7 @@ sap.ui.define([
 
 	return {
 
-		onOpenVCRDialog: function (oEvent) {
+		onOpenVRCDialog: function (oEvent) {
 			const oButton = oEvent.getSource();
 			const oBindingContext = oButton.getBindingContext();
 			const that = this;
@@ -129,7 +129,7 @@ sap.ui.define([
 			_oCurrentView = oView;
 
 			const openWithData = function (oDialog) {
-				const oDialogModel = oDialog.getModel("vcr");
+				const oDialogModel = oDialog.getModel("vrc");
 				loadFollowUpIntoModel(oBindingContext, oDialogModel).then(function () {
 					oDialog.open();
 				}).catch(function (oError) {
@@ -152,33 +152,33 @@ sap.ui.define([
 				});
 			};
 
-			if (!_oVCRDialog) {
+			if (!_oVRCDialog) {
 				Fragment.load({
 					id: oView.getId(),
-					name: "emlatracker.emlatracker.ext.fragment.VCRDialog",
+					name: "emlatracker.emlatracker.ext.fragment.VRCDialog",
 					controller: that
 				}).then(function (oDialog) {
-					_oVCRDialog = oDialog;
+					_oVRCDialog = oDialog;
 					// Attach a dedicated JSON model for the dialog form
 					const oDialogModel = new JSONModel({});
-					_oVCRDialog.setModel(oDialogModel, "vcr");
-					oView.addDependent(_oVCRDialog);
-					openWithData(_oVCRDialog);
+					_oVRCDialog.setModel(oDialogModel, "vrc");
+					oView.addDependent(_oVRCDialog);
+					openWithData(_oVRCDialog);
 				}).catch(function (oError) {
-					console.error("Failed to load VCR dialog fragment:", oError);
+					console.error("Failed to load VRC dialog fragment:", oError);
 					MessageBox.error("Failed to open dialog. Please refresh and try again.");
 				});
 			} else {
-				openWithData(_oVCRDialog);
+				openWithData(_oVRCDialog);
 			}
 		},
 
-		onSaveVCRDialog: function (oEvent) {
+		onSaveVRCDialog: function (oEvent) {
 			const oButton = oEvent.getSource();
 			const oDialog = findAncestor(oButton, "sap.m.Dialog");
 			if (!oDialog || !_oCurrentRowContext) { return; }
 
-			const oDialogModel = oDialog.getModel("vcr");
+			const oDialogModel = oDialog.getModel("vrc");
 			const oFormData = oDialogModel.getData();
 			const oODataModel = _oCurrentRowContext.getModel();
 
@@ -269,7 +269,7 @@ sap.ui.define([
 			}
 		},
 
-		onCancelVCRDialog: function (oEvent) {
+		onCancelVRCDialog: function (oEvent) {
 			const oButton = oEvent.getSource();
 			const oDialog = findAncestor(oButton, "sap.m.Dialog");
 			if (oDialog) { oDialog.close(); }
@@ -280,7 +280,7 @@ sap.ui.define([
 			const oDialog = findAncestor(oButton, "sap.m.Dialog");
 			if (!oDialog) { return; }
 
-			const oDialogModel = oDialog.getModel("vcr");
+			const oDialogModel = oDialog.getModel("vrc");
 			const aScenarios = oDialogModel.getProperty("/scenarios") || [];
 			aScenarios.push({ id: null, scenario_ID: null, scenarioName: "", scenarioEmlaType: "" });
 			oDialogModel.setProperty("/scenarios", aScenarios);
@@ -291,9 +291,9 @@ sap.ui.define([
 			const oDialog = findAncestor(oButton, "sap.m.Dialog");
 			if (!oDialog) { return; }
 
-			const oDialogModel = oDialog.getModel("vcr");
+			const oDialogModel = oDialog.getModel("vrc");
 			const oFormData = oDialogModel.getData();
-			const sPath = oButton.getBindingContext("vcr").getPath(); // e.g. /scenarios/2
+			const sPath = oButton.getBindingContext("vrc").getPath(); // e.g. /scenarios/2
 			const iIndex = parseInt(sPath.split("/").pop(), 10);
 			const oScenario = oFormData.scenarios[iIndex];
 
@@ -324,7 +324,7 @@ sap.ui.define([
 			const oDialog = findAncestor(oInput, "sap.m.Dialog");
 			if (!oDialog) { return; }
 
-			const oDialogModel = oDialog.getModel("vcr");
+			const oDialogModel = oDialog.getModel("vrc");
 			const oODataModel = _oCurrentRowContext.getModel();
 
 			if (!_oAdvisorDialog) {
@@ -367,9 +367,9 @@ sap.ui.define([
 			const oDialog = findAncestor(oInput, "sap.m.Dialog");
 			if (!oDialog) { return; }
 
-			const oDialogModel = oDialog.getModel("vcr");
+			const oDialogModel = oDialog.getModel("vrc");
 			const sEmlaType = oDialogModel.getProperty("/emlaType");
-			const sRowPath = oInput.getBindingContext("vcr").getPath(); // /scenarios/N
+			const sRowPath = oInput.getBindingContext("vrc").getPath(); // /scenarios/N
 			const iIndex = parseInt(sRowPath.split("/").pop(), 10);
 			const oODataModel = _oCurrentRowContext.getModel();
 

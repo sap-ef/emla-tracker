@@ -1,17 +1,17 @@
 <core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
-	<HBox id="fuVCRContainer" class="sapUiTinyContentPadding">
+	<HBox id="fuVRCContainer" class="sapUiTinyContentPadding">
 		<items>
 			<core:Icon
-				id="fuVCRIcon"
+				id="fuVRCIcon"
 				src="{parts: ['trackApp'], formatter: 'formatter.icon'}"
 				color="{parts: ['trackApp'], formatter: 'formatter.color'}"
 				class="emlaIconPad"
 				tooltip="{parts: ['trackApp'], formatter: 'formatter.tooltip'}"
 				core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/FollowUpSessionFormatter'}" />
 			<Link
-				id="fuVCRLink"
-				text="VCR"
-				press="handler.onPressVCR"
+				id="fuVRCLink"
+				text="VRC"
+				press="handler.onPressVRC"
 				core:require="{handler: 'emlatracker/emlatracker/ext/controller/FollowUpSessionController'}"
 				class="sapUiTinyMarginBegin" />
 		</items>

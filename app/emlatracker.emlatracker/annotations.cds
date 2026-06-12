@@ -195,6 +195,10 @@ annotate service.EMLACustomers with {
 };
 
 annotate service.EMLACustomers with {
+    btpOnbAdvAssignedOn @Common.Label : 'Assigned Date'
+};
+
+annotate service.EMLACustomers with {
     status @Common.Label : 'Status'
 };
 
