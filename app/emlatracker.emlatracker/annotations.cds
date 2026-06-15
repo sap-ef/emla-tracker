@@ -153,22 +153,6 @@ annotate service.EMLACustomers with @(
                 },
             ],
         },
-        SelectionVariant : {
-            $Type : 'UI.SelectionVariantType',
-            SelectOptions : [
-                {
-                    $Type : 'UI.SelectOptionType',
-                    PropertyName : status,
-                    Ranges : [
-                        {
-                            Sign : #I,
-                            Option : #NE,
-                            Low : 'Completed',
-                        },
-                    ],
-                },
-            ],
-        },
     },
 );
 

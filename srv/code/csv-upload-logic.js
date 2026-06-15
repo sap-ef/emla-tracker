@@ -841,6 +841,24 @@ module.exports = async function(request) {
                 }
             }
 
+            // For PrivateCloudERP: skip rows without BTP Onboarding Advisor
+            if (mappingType === 'PrivateCloudERP') {
+                // Try fallback extraction first
+                if (!mappedRecord.btpOnbAdvNome || !(mappedRecord.btpOnbAdvNome+'').trim()) {
+                    try {
+                        const fallbackCandidate = (rowObj['BTP Onboarding Advisor'] || rowObj['BTP ONB Advisor'] || rowObj['EmLA Staffing for BTP'] || '').toString().trim();
+                        if (fallbackCandidate && isMeaningfulAdvisorName(fallbackCandidate)) {
+                            mappedRecord.btpOnbAdvNome = fallbackCandidate;
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+                if (!mappedRecord.btpOnbAdvNome || !(mappedRecord.btpOnbAdvNome+'').trim()) {
+                    skippedNoAdvisor++;
+                    console.log('[CSVUPLOAD] Skipping Private Cloud row without BTP Onboarding Advisor, row=', csvRowNumber, 'customerName=', mappedRecord.customerName, 'customerNumber=', mappedRecord.customerNumber);
+                    continue;
+                }
+            }
+
             if (!mappedRecord.customerName || !mappedRecord.customerNumber || !mappedRecord.emlaType) {
                 validationErrorCount++;
                 errors2.push({ row: csvRowNumber, customerNumber: mappedRecord.customerNumber || '', customerName: mappedRecord.customerName || '', reason: 'Missing required fields (customerName, customerNumber, emlaType)' });
