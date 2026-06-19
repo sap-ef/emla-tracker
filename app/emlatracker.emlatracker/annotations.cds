@@ -246,6 +246,12 @@ annotate service.FollowUpTracking with @(
             ![@HTML5.CssDefaults]: {width: '120px'},
         },
         {
+            $Type                : 'UI.DataField',
+            Label                : 'VRC Status',
+            Value                : vrcDisplayStatus,
+            ![@HTML5.CssDefaults]: {width: '140px'},
+        },
+        {
             $Type : 'UI.DataFieldForAction',
             Action: 'EMLATrackerService.followUpSessionSync',
             Label : 'Session Sync',
@@ -262,6 +268,7 @@ annotate service.FollowUpTracking with @(
         PresentationVariant : {
             $Type          : 'UI.PresentationVariantType',
             Visualizations : ['@UI.LineItem#followup'],
+            GroupBy        : [vrcDisplayStatus],
             RequestAtLeast : [
                 followUpID,
                 trackApp,
@@ -269,12 +276,20 @@ annotate service.FollowUpTracking with @(
                 isVRCRejected,
                 vrcStatus,
                 vrcDate,
+                vrcDisplayStatus,
             ],
-            SortOrder      : [{
-                $Type      : 'Common.SortOrderType',
-                Property   : returnDate,
-                Descending : false,
-            }],
+            SortOrder      : [
+                {
+                    $Type      : 'Common.SortOrderType',
+                    Property   : vrcDisplayStatus,
+                    Descending : true,
+                },
+                {
+                    $Type      : 'Common.SortOrderType',
+                    Property   : returnDate,
+                    Descending : false,
+                }
+            ],
         },
         SelectionVariant    : {
             $Type         : 'UI.SelectionVariantType',
@@ -292,6 +307,11 @@ annotate service.FollowUpTracking with @(
         },
     },
 );
+
+annotate service.FollowUpTracking with {
+    vrcStatus @Common.Label : 'VRC Status';
+    vrcDisplayStatus @Common.Label : 'VRC Status'
+};
 
 annotate service.FollowUpTracking with {
     btpOnbAdvEmail @(

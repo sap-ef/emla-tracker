@@ -136,6 +136,7 @@ entity FollowUpTracking as select from FollowUp as f
         f.isVRCCompleted,
         f.isVRCRejected,
         f.vrcStatus,
+        case when f.vrcStatus is not null and f.vrcStatus != '' then f.vrcStatus else 'Not Completed' end as vrcDisplayStatus : String(30),
         f.vrcDate,
         f.notes           as followUpNotes
 };
