@@ -104,6 +104,10 @@ entity FollowUp : managed {
       btpOnbAdvEmail      : String(100);
       isSessionInterested : Boolean default false;
       trackApp            : String(36);
+      isVRCCompleted      : Boolean default false;
+      isVRCRejected       : Boolean default false;
+      vrcStatus           : String(30);
+      vrcDate             : Date;
       notes               : String(5000);
       scenarios           : Composition of many FollowUpScenarios
                                 on scenarios.followUp = $self;
@@ -129,5 +133,9 @@ entity FollowUpTracking as select from FollowUp as f
         f.btpOnbAdvEmail  as btpOnbAdvEmail,
         f.isSessionInterested,
         f.trackApp,
+        f.isVRCCompleted,
+        f.isVRCRejected,
+        f.vrcStatus,
+        f.vrcDate,
         f.notes           as followUpNotes
 };

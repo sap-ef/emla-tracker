@@ -245,6 +245,11 @@ annotate service.FollowUpTracking with @(
             Value                : isSessionInterested,
             ![@HTML5.CssDefaults]: {width: '120px'},
         },
+        {
+            $Type : 'UI.DataFieldForAction',
+            Action: 'EMLATrackerService.followUpSessionSync',
+            Label : 'Session Sync',
+        },
     ],
     UI.SelectionFields : [
         btpOnbAdvEmail,
@@ -260,6 +265,10 @@ annotate service.FollowUpTracking with @(
             RequestAtLeast : [
                 followUpID,
                 trackApp,
+                isVRCCompleted,
+                isVRCRejected,
+                vrcStatus,
+                vrcDate,
             ],
             SortOrder      : [{
                 $Type      : 'Common.SortOrderType',

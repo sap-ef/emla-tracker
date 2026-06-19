@@ -79,6 +79,18 @@ service EMLATrackerService {
             }
             @Core.OperationAvailable: true
             action createVRCSession() returns String;
+
+            @Common.SideEffects: {
+                TargetProperties: [
+                    'isVRCCompleted',
+                    'isVRCRejected',
+                    'vrcStatus',
+                    'vrcDate'
+                ],
+                TargetEntities  : ['FollowUpTracking']
+            }
+            @Core.OperationAvailable: true
+            action followUpSessionSync() returns String;
         };
 
     @readonly

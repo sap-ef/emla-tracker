@@ -3,10 +3,10 @@
 		<items>
 			<core:Icon
 				id="fuVRCIcon"
-				src="{parts: ['trackApp'], formatter: 'formatter.icon'}"
-				color="{parts: ['trackApp'], formatter: 'formatter.color'}"
+				src="{parts: ['trackApp', 'isVRCCompleted', 'isVRCRejected'], formatter: 'formatter.icon'}"
+				color="{parts: ['trackApp', 'isVRCCompleted', 'isVRCRejected'], formatter: 'formatter.color'}"
 				class="emlaIconPad"
-				tooltip="{parts: ['trackApp'], formatter: 'formatter.tooltip'}"
+				tooltip="{parts: ['trackApp', 'isVRCCompleted', 'isVRCRejected', 'vrcStatus', 'vrcDate'], formatter: 'formatter.tooltip'}"
 				core:require="{formatter: 'emlatracker/emlatracker/ext/formatter/FollowUpSessionFormatter'}" />
 			<Link
 				id="fuVRCLink"

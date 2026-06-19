@@ -126,6 +126,39 @@ async function updateSessionStatus(req) {
       }
     }
 
+    // Check FollowUp VRC sessions
+    const { FollowUp } = db.entities;
+    const vrcRecords = await SELECT.from(FollowUp).where(`
+      trackApp is not null
+      and trackApp != ''
+      and (isVRCCompleted is null or isVRCCompleted = false)
+    `);
+
+    for (const record of vrcRecords) {
+      totalChecked++;
+      try {
+        const sessionData = await checkSessionStatus(record.trackApp, logger);
+        if (sessionData) {
+          const updateData = {
+            vrcStatus: sessionData.status || 'Unknown',
+          };
+          if (sessionData.sessionDate) {
+            updateData.vrcDate = new Date(sessionData.sessionDate);
+          }
+          if (sessionData.completed) {
+            updateData.isVRCCompleted = true;
+          }
+          if (sessionData.rejected) {
+            updateData.isVRCRejected = true;
+          }
+          await UPDATE(FollowUp).set(updateData).where({ ID: record.ID });
+          totalUpdated++;
+        }
+      } catch (error) {
+        logger.error(`Failed VRC session ${record.trackApp}: ${error.message}`);
+      }
+    }
+
     const result = `Session status update completed. Checked ${totalChecked} sessions, updated ${totalUpdated} records.`;
     logger.info(result);
     return result;

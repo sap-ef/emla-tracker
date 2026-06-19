@@ -46,6 +46,10 @@ class EMLATrackerService extends LCAPApplicationService {
       return sessionSync_Logic.sessionSync(request);
     });
 
+    this.on("followUpSessionSync", "FollowUpTracking", async (request) => {
+      return sessionSync_Logic.followUpSessionSync(request);
+    });
+
     this.on("syncEMLAData", async (request) => {
       return syncEmla_Logic(request);
     });

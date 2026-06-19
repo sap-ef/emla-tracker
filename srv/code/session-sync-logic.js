@@ -267,4 +267,64 @@ async function checkSessionStatus(sessionId, logger) {
 
 module.exports = {
   sessionSync,
+  followUpSessionSync,
 };
+
+async function followUpSessionSync(req) {
+  const logger = cds.log("followup-session-sync");
+  try {
+    const params = req.params;
+    if (!params || params.length === 0) {
+      logger.warn("No records selected for follow-up session sync");
+      return "No records selected for follow-up session sync";
+    }
+
+    const selectedCustomerIds = params.map(p => p.ID);
+    const db = await cds.connect.to("db");
+    const { FollowUp } = db.entities;
+
+    let totalUpdated = 0, totalChecked = 0;
+
+    const records = await SELECT.from(FollowUp).where({ customer_ID: { in: selectedCustomerIds } });
+
+    for (const record of records) {
+      logger.info(`Processing FollowUp ID: ${record.ID}, customer_ID: ${record.customer_ID}`);
+
+      if (!record.trackApp) {
+        logger.info(`FollowUp ${record.ID} has no trackApp session — skipping`);
+        continue;
+      }
+
+      totalChecked++;
+      logger.info(`Checking VRC session: ${record.trackApp}`);
+
+      try {
+        const sessionData = await checkSessionStatus(record.trackApp, logger);
+        logger.info(`Session data for ${record.trackApp}:`, JSON.stringify(sessionData, null, 2));
+
+        if (sessionData) {
+          const updateData = {
+            vrcStatus: sessionData.status || 'Unknown',
+            isVRCCompleted: sessionData.completed || false,
+            isVRCRejected: sessionData.rejected || false,
+          };
+          if (sessionData.sessionDate) {
+            updateData.vrcDate = sessionData.sessionDate;
+          }
+          logger.info(`Updating FollowUp ${record.ID} with:`, JSON.stringify(updateData, null, 2));
+          await UPDATE(FollowUp).set(updateData).where({ ID: record.ID });
+          totalUpdated++;
+        }
+      } catch (err) {
+        logger.error(`Failed VRC session ${record.trackApp}: ${err.message}`);
+      }
+    }
+
+    const result = `Follow-up session sync completed. Checked ${totalChecked} sessions, updated ${totalUpdated} records.`;
+    logger.info(result);
+    return result;
+  } catch (error) {
+    logger.error("Follow-up session sync failed:", error);
+    throw new Error(`Follow-up session sync failed: ${error.message}`);
+  }
+}
